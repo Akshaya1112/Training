@@ -1,4 +1,5 @@
 ﻿namespace A03;
+
 class Program {
    static void Main (string[] args) {
       char[] letters = { 'U', 'X', 'A', 'L', 'T', 'N', 'E' };
@@ -42,7 +43,7 @@ class Program {
       }
       Console.WriteLine ("---------");
       Console.WriteLine (Total + " total");
-      bool IsAllowed (char c, char[] letters) {
+      bool IsAllowed (char c) {
          for (int i = 0; i < letters.Length; i++)
             if (c == letters[i])
                return true;
@@ -54,7 +55,7 @@ class Program {
          if (!word.Contains (letters[0]))
             return false;
          for (int i = 0; i < word.Length; i++)
-            if (IsAllowed (word[i], letters) == false)
+            if (!IsAllowed (word[i]))
                return false;
          return true;
       }
