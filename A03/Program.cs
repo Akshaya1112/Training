@@ -1,79 +1,64 @@
-﻿namespace A03;
-
+﻿// ------------------------------------------------------------------------------------------------
+// Training ~ A training program for new joinees at Metamation, Batch- July 2026.
+// Copyright (c) Metamation India.
+// ------------------------------------------------------------------------------------------------
+// Program.cs
+// Spelling Bee - Finds valid words from a given set of letters.
+// ------------------------------------------------------------------------------------------------
 class Program {
-   static void Main (string[] args) {
+   static void Main () {
       char[] letters = { 'U', 'X', 'A', 'L', 'T', 'N', 'E' };
-      string[] words = File.ReadAllLines (@"C:\Work\Training\A03\words 1.txt");
-      List<string> validWords = new List<string> ();
-      List<bool> pangrams = new List<bool> ();
-      List<int> scores = new List<int> ();
+      string[] words = File.ReadAllLines ("words.txt");
+      List<string> validWords = [];
+      List<bool> pangrams = [];
+      List<int> scores = [];
       for (int i = 0; i < words.Length; i++) {
          string w = words[i].ToUpper ();
          if (IsValid (w)) {
             validWords.Add (w);
             bool p = IsPangram (w);
             pangrams.Add (p);
-            int s = calculateScore (w, p);
+            int s = CalculateScore (w, p);
             scores.Add (s);
          }
       }
       for (int i = 0; i < validWords.Count - 1; i++) {
-         for (int j = 0; j < validWords.Count - 1; j++) {
-            if (scores[j] < scores[j + 1] || scores[j] == scores[j + 1] && validWords[j].CompareTo (validWords[j + 1]) > 0) {
-               int tempScore = scores[j];
-               scores[j] = scores[j + 1];
-               scores[j + 1] = tempScore;
-               string tempWord = validWords[j];
-               validWords[j] = validWords[j + 1];
-               validWords[j + 1] = tempWord;
-               bool tempPangram = pangrams[j];
-               pangrams[j] = pangrams[j + 1];
-               pangrams[j + 1] = tempPangram;
+         for (int j = 0; j < validWords.Count - 1 - i; j++) {
+            if (scores[j] < scores[j + 1] || (scores[j] == scores[j + 1]
+               && validWords[j].CompareTo (validWords[j + 1]) > 0)) {
+               (scores[j + 1], scores[j]) = (scores[j], scores[j + 1]);
+               (validWords[j + 1], validWords[j]) = (validWords[j], validWords[j + 1]);
+               (pangrams[j + 1], pangrams[j]) = (pangrams[j], pangrams[j + 1]);
             }
          }
       }
-      int Total = 0;
+      int total = 0;
       for (int i = 0; i < validWords.Count; i++) {
-         if (pangrams[i])
-            Console.ForegroundColor = ConsoleColor.Green;
-         else
-            Console.ResetColor ();
+         if (pangrams[i]) Console.ForegroundColor = ConsoleColor.Green;
+         else Console.ResetColor ();
          Console.WriteLine ("{0,2}. {1}", scores[i], validWords[i]);
-         Total += scores[i];
+         total += scores[i];
       }
-      Console.WriteLine ("---------");
-      Console.WriteLine (Total + " total");
-      bool IsAllowed (char c) {
-         for (int i = 0; i < letters.Length; i++)
-            if (c == letters[i])
-               return true;
-         return false;
-      }
+      Console.WriteLine ($"---------\n{total} total");
+
+      // Helper functions -------------------------------------------
       bool IsValid (string word) {
-         if (word.Length < 4)
-            return false;
-         if (!word.Contains (letters[0]))
-            return false;
+         if (word.Length < 4) return false;
+         if (!word.Contains (letters[0])) return false;
          for (int i = 0; i < word.Length; i++)
-            if (!IsAllowed (word[i]))
-               return false;
+            if (!letters.Contains (word[i])) return false;
          return true;
       }
+
       bool IsPangram (string word) {
-         for (int i = 0; i < letters.Length; i++) {
-            if (!word.Contains (letters[i]))
-               return false;
-         }
+         for (int i = 0; i < letters.Length; i++)
+            if (!word.Contains (letters[i])) return false;
          return true;
       }
-      int calculateScore (string word, bool pangram) {
-         int score;
-         if (word.Length == 4)
-            score = 1;
-         else
-            score = word.Length;
-         if (pangram)
-            score += 7;
+
+      int CalculateScore (string word, bool pangram) {
+         int score = word.Length == 4 ? 1 : word.Length;
+         if (pangram) score += 7;
          return score;
       }
    }
