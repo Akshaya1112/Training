@@ -18,7 +18,7 @@ class Program {
       while (low <= high) {
          guess = low + (high - low) / 2;
          attempts++;
-         Write ($"\nAttempt {attempts}: My guess is {guess}. Higher, Lower, or Correct? (H/L/C): ");
+         Write ($"\nAttempt {attempts}: My guess is {guess}. (H/L/C): ");
          ConsoleKey hint = ReadGuess ();
          switch (hint) {
             case C:
