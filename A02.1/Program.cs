@@ -6,33 +6,38 @@
 // Computer guesses the user's number using Binary Search.
 // ------------------------------------------------------------------------------------------------
 using static System.Console;
+using static System.ConsoleKey;
+
 class Program {
    static void Main () {
-      const int MIN_NUMBER = 1, MAX_NUMBER = 100;
-      Write ("Think of a number between 1 and 100.\nH = my number is higher than the guess" +
-             "\nL = my number is lower than the guess\nC = correct");
-      int low = MIN_NUMBER, high = MAX_NUMBER, attempts = 0, guess;
+      Write (@"Think of a number between 1 and 100.
+         H = Number is Higher than the guess
+         L = Number is Lower than the guess
+         C = Correct");
+      int low = MIN, high = MAX, attempts = 0, guess;
       while (low <= high) {
          guess = low + (high - low) / 2;
          attempts++;
-         Write ($"\nAttempt {attempts}: My guess is {guess,3} (H/L/C) : ");
+         Write ($"\nAttempt {attempts}: My guess is {guess}. Higher, Lower, or Correct? (H/L/C): ");
          ConsoleKey hint = ReadGuess ();
-         if (hint == ConsoleKey.C) {
-            WriteLine ($"\nI guessed your number in {attempts} attempts!");
-            return;
+         switch (hint) {
+            case C:
+               WriteLine ($"\nI guessed your number in {attempts} attempts!");
+               return;
+            case H: low = guess + 1; break;
+            default: high = guess - 1; break;
          }
-         if (hint == ConsoleKey.H) low = guess + 1;
-         else high = guess - 1;
       }
       WriteLine ("\nHints are inconsistent; number could not be determined.");
-
-      // Helper function -------------------------------------------
-
-      static ConsoleKey ReadGuess () {
-         ConsoleKey hint;
-         while (!((hint = ReadKey (true).Key) is ConsoleKey.C or ConsoleKey.H or ConsoleKey.L)) ;
-         Write (hint);
-         return hint;
-      }
    }
+
+   // Helper function --------------------------------------------
+   static ConsoleKey ReadGuess () {
+      ConsoleKey hint;
+      while (!((hint = ReadKey (true).Key) is C or H or L));
+      Write (hint);
+      return hint;
+   }
+
+   const int MIN = 1, MAX = 100;
 }
