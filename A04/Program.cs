@@ -10,7 +10,7 @@ using static System.Console;
 class Program {
    static void Main () {
       Dictionary<char, int> freq = [];
-      foreach (char ch in File.ReadAllText ("words.txt").ToUpper())
+      foreach (char ch in File.ReadAllText ("words.txt").ToUpper ())
          if (char.IsLetter (ch))
             freq[ch] = freq.GetValueOrDefault (ch) + 1;
       WriteLine ("Letter | Count");
@@ -19,4 +19,3 @@ class Program {
          WriteLine ($"{item.Key,6} | {item.Value,5}");
    }
 }
-
