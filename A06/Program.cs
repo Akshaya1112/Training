@@ -16,7 +16,7 @@ class Program {
       WriteLine ("(U)nique Solutions");
       Write ("Select an option: ");
       ConsoleKey key;
-      while ((key = ReadKey (true).Key) is not (ConsoleKey.A or ConsoleKey.U)) ;
+      while (true) { key = ReadKey (true).Key; if (key is ConsoleKey.A or ConsoleKey.U) break; }
       Clear ();
       switch (key) {
          case ConsoleKey.A:
@@ -40,8 +40,9 @@ class Program {
                if (Valid (row)) {
                   if (row < N - 1) Place (row + 1);
                   else {
-                     int[] solution = [.. pos];
-                     if (!findUnique || IsUnique (solution)) solutions.Add (solution);
+                     if (!findUnique) { solutions.Add ([.. pos]); } else if (IsUnique (pos)) {
+                        solutions.Add ([.. pos]);
+                     }
                   }
                }
             }
@@ -91,8 +92,10 @@ class Program {
             PrintBoard (solutions[soln]);
             WriteLine ("\n← Previous    → Next    Esc Exit");
             ConsoleKey key;
-            while ((key = ReadKey (true).Key) is not
-                (ConsoleKey.RightArrow or ConsoleKey.LeftArrow or ConsoleKey.Escape)) ;
+            while (true) {
+               key = ReadKey (true).Key;
+               if (key is ConsoleKey.RightArrow or ConsoleKey.LeftArrow or ConsoleKey.Escape) break;
+            }
             switch (key) {
                case ConsoleKey.RightArrow:
                   soln++;
