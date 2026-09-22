@@ -40,9 +40,7 @@ class Program {
                if (Valid (row)) {
                   if (row < N - 1) Place (row + 1);
                   else {
-                     if (!findUnique) { solutions.Add ([.. pos]); } else if (IsUnique (pos)) {
-                        solutions.Add ([.. pos]);
-                     }
+                     if (!findUnique || IsUnique (pos)) solutions.Add ([.. pos]);
                   }
                }
             }
