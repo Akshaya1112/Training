@@ -86,24 +86,26 @@ class Program {
          while (soln >= 0 && soln < solutions.Count) {
             SetCursorPosition (0, 0);
             WriteLine ($"{title}");
-            WriteLine ($"Solution {soln + 1} of {solutions.Count}\n");
+            WriteLine ($"Solution {soln + 1,2} of {solutions.Count}\n");
             PrintBoard (solutions[soln]);
             WriteLine ("\n← Previous    → Next    Esc Exit");
             ConsoleKey key;
             while (true) {
                key = ReadKey (true).Key;
-               if (key is ConsoleKey.RightArrow or ConsoleKey.LeftArrow or ConsoleKey.Escape) break;
-            }
-            switch (key) {
-               case ConsoleKey.RightArrow:
-                  soln++;
+               if (key is ConsoleKey.RightArrow or ConsoleKey.LeftArrow or ConsoleKey.Escape) {
+                  switch (key) {
+                     case ConsoleKey.RightArrow:
+                        soln++;
+                        break;
+                     case ConsoleKey.LeftArrow:
+                        soln--;
+                        break;
+                     case ConsoleKey.Escape:
+                        Clear ();
+                        return;
+                  }
                   break;
-               case ConsoleKey.LeftArrow:
-                  soln--;
-                  break;
-               case ConsoleKey.Escape:
-                  Clear ();
-                  return;
+               }
             }
          }
       }
