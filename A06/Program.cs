@@ -16,25 +16,30 @@ class Program {
       WriteLine ("(U)nique Solutions");
       Write ("Select an option: ");
       ConsoleKey key;
-      while (true) { key = ReadKey (true).Key; if (key is ConsoleKey.A or ConsoleKey.U) break; }
-      Clear ();
-      switch (key) {
-         case ConsoleKey.A:
-            PrintSolutions (FindSolutions (false), "All Solutions");
+      while (true) {
+         key = ReadKey (true).Key;
+         if (key is ConsoleKey.A or ConsoleKey.U) {
+            Clear ();
+            switch (key) {
+               case ConsoleKey.A:
+                  PrintSolutions (FindSolutions (false), "All Solutions");
+                  break;
+               case ConsoleKey.U:
+                  PrintSolutions (FindSolutions (true), "Unique Solutions");
+                  break;
+            }
             break;
-         case ConsoleKey.U:
-            PrintSolutions (FindSolutions (true), "Unique Solutions");
-            break;
+         }
       }
 
-      // Finds all valid queen placements using backtracking.
+      // Finds all valid queen placements using backtracking
       List<int[]> FindSolutions (bool findUnique) {
          List<int[]> solutions = [];
          int[] pos = new int[N];
          Place (0);
          return solutions;
 
-         // Places a queen in each row and continues with the next row.
+         // Places a queen in each row and continues with the next row
          void Place (int row) {
             for (pos[row] = 0; pos[row] < N; pos[row]++) {
                if (Valid (row)) {
@@ -46,7 +51,7 @@ class Program {
             }
          }
 
-         // Checks whether the queen placement in the specified row is valid.
+         // Checks whether the queen placement in the specified row is valid
          bool Valid (int row) {
             for (int r = 0; r < row; r++) {
                int dy = row - r, dx = Math.Abs (pos[row] - pos[r]);
@@ -55,7 +60,7 @@ class Program {
             return true;
          }
 
-         // Checks whether the solution is different from its rotations and mirror images.
+         // Checks whether the solution is different from its rotations and mirror images
          bool IsUnique (int[] solution) {
             int[] temp = solution;
             for (int i = 0; i < 4; i++) {
@@ -65,21 +70,21 @@ class Program {
             return true;
          }
 
-         // Checks whether a solution already exists in the list.
+         // Checks whether a solution already exists in the list
          bool Exists (int[] test) => solutions.Any (x => x.SequenceEqual (test));
       }
 
-      // Rotates a queen placement by 90 degrees.
+      // Rotates a queen placement by 90 degrees
       int[] Rotate (int[] a) {
          int[] b = new int[N];
          for (int i = 0; i < N; i++) b[a[i]] = N - i - 1;
          return b;
       }
 
-      // Creates the mirror image of a queen placement.
+      // Creates the mirror image of a queen placement
       int[] Mirror (int[] a) => [.. a.Reverse ()];
 
-      // Displays the solutions and allows navigation between them.
+      // Displays the solutions and allows navigation between them
       void PrintSolutions (List<int[]> solutions, string title) {
          OutputEncoding = Encoding.UTF8;
          int soln = 0;
@@ -92,25 +97,24 @@ class Program {
             ConsoleKey key;
             while (true) {
                key = ReadKey (true).Key;
-               if (key is ConsoleKey.RightArrow or ConsoleKey.LeftArrow or ConsoleKey.Escape) {
-                  switch (key) {
-                     case ConsoleKey.RightArrow:
-                        soln++;
-                        break;
-                     case ConsoleKey.LeftArrow:
-                        soln--;
-                        break;
-                     case ConsoleKey.Escape:
-                        Clear ();
-                        return;
-                  }
-                  break;
+               switch (key) {
+                  case ConsoleKey.RightArrow:
+                     soln++;
+                     break;
+                  case ConsoleKey.LeftArrow:
+                     soln--;
+                     break;
+                  case ConsoleKey.Escape:
+                     Clear ();
+                     return;
+                  default: continue;
                }
+               break;
             }
          }
       }
 
-      // Displays a queen placement as a chess board.
+      // Displays a queen placement as a chess board
       void PrintBoard (int[] queens) {
          WriteLine (Border (TOP));
          for (int row = 0; row < N; row++) {
@@ -123,7 +127,7 @@ class Program {
          WriteLine (Border (BOTTOM));
       }
 
-      // Creates a board border using the specified pattern.
+      // Creates a board border using the specified pattern
       string Border (string pattern)
          => pattern[0] + string.Join (pattern[1], Enumerable.Repeat (HORIZONTAL, N)) + pattern[2];
    }
