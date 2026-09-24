@@ -15,21 +15,21 @@ class Program {
       WriteLine ("(A)ll Solutions");
       WriteLine ("(U)nique Solutions");
       Write ("Select an option: ");
-      ConsoleKey key;
       while (true) {
+         ConsoleKey key;
          key = ReadKey (true).Key;
-         if (key is ConsoleKey.A or ConsoleKey.U) {
-            Clear ();
-            switch (key) {
-               case ConsoleKey.A:
-                  PrintSolutions (FindSolutions (false), "All Solutions");
-                  break;
-               case ConsoleKey.U:
-                  PrintSolutions (FindSolutions (true), "Unique Solutions");
-                  break;
-            }
-            break;
+         switch (key) {
+            case ConsoleKey.A:
+               Clear ();
+               PrintSolutions (FindSolutions (false), "All Solutions");
+               break;
+            case ConsoleKey.U:
+               Clear ();
+               PrintSolutions (FindSolutions (true), "Unique Solutions");
+               break;
+            default: continue;
          }
+         break;
       }
 
       // Finds all valid queen placements using backtracking
@@ -94,8 +94,8 @@ class Program {
             WriteLine ($"Solution {soln + 1,2} of {solutions.Count}\n");
             PrintBoard (solutions[soln]);
             WriteLine ("\n← Previous    → Next    Esc Exit");
-            ConsoleKey key;
             while (true) {
+               ConsoleKey key;
                key = ReadKey (true).Key;
                switch (key) {
                   case ConsoleKey.RightArrow:
