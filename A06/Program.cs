@@ -40,9 +40,7 @@ class Program {
             for (pos[row] = 0; pos[row] < N; pos[row]++) {
                if (Valid (row)) {
                   if (row < N - 1) Place (row + 1);
-                  else {
-                     if (!findUnique || IsUnique (pos)) solutions.Add ([.. pos]);
-                  }
+                  else if (!findUnique || IsUnique (pos)) solutions.Add ([.. pos]);
                }
             }
          }
