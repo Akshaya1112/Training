@@ -7,15 +7,23 @@
 // ------------------------------------------------------------------------------------------------
 
 #region Class TQueue ------------------------------------------------------------------------------
-/// <summary>Implements a generic queue using a circular buffer</summary>
+/// <summary>
+/// Implements a generic queue using a circular buffer
+/// </summary>
+/// <typeparam name="T"></typeparam>
 class TQueue<T> {
-   #region Properties ---------------------------------------------------------
-   /// <summary>Checks whether the queue contains no elements</summary>
+   #region Properties -----------------------------------------------
+   /// <summary>
+   /// Checks whether the queue contains no elements
+   /// </summary>
    public bool IsEmpty => mUsed == 0;
    #endregion
 
-   #region Methods ------------------------------------------------------------
-   /// <summary>Adds an element to the end of the queue</summary>
+   #region Methods --------------------------------------------------
+   /// <summary>
+   /// Adds an element to the end of the queue
+   /// </summary>
+   /// <param name="a"></param>
    public void Enqueue (T a) {
       if (mUsed == mData.Length) Resize ();
       mData[mTail] = a;
@@ -23,8 +31,11 @@ class TQueue<T> {
       mUsed++;
    }
 
-   /// <summary>Removes and returns the first element in the queue</summary>
-   /// <exception cref="InvalidOperationException">Thrown when the queue is empty</exception>
+   /// <summary>
+   /// Removes and returns the first element in the queue
+   /// </summary>
+   /// <returns></returns>
+   /// <exception cref="InvalidOperationException"></exception>
    public T Dequeue () {
       if (mUsed == 0) throw new InvalidOperationException ("Queue is empty");
       T a = mData[mHead];
@@ -35,7 +46,7 @@ class TQueue<T> {
    }
    #endregion
 
-   #region Implementation -----------------------------------------------------
+   #region Implementation -------------------------------------------
    // Doubles the buffer size while preserving the queue order
    void Resize () {
       T[] newData = new T[mData.Length * 2];
@@ -46,7 +57,7 @@ class TQueue<T> {
    }
    #endregion
 
-   #region Private data -------------------------------------------------------
+   #region Private data ---------------------------------------------
    T[] mData = new T[4];    // Stores the queue elements
    int mHead;               // Index of the next element to dequeue
    int mTail;               // Index where the next element is enqueued

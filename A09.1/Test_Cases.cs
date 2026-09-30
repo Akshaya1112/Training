@@ -8,9 +8,11 @@
 using static System.Console;
 
 #region Class Program -----------------------------------------------------------------------------
-/// <summary>Tests the generic queue implementation</summary>
+/// <summary>
+/// Tests the generic queue implementation
+/// </summary>
 class Program {
-   #region Implementation -----------------------------------------------------
+   #region Implementation -------------------------------------------
    // Runs all queue test cases
    static void Main () {
       TestEmptyQueue ();
@@ -87,8 +89,9 @@ class Program {
    static void TestIsEmpty () {
       TQueue<int> queue = new ();
       queue.Enqueue (10);
+      PrintStatus ("Not empty after Enqueue", !queue.IsEmpty);
       queue.Dequeue ();
-      PrintStatus ("IsEmpty", queue.IsEmpty);
+      PrintStatus ("Empty after Dequeue", queue.IsEmpty);
    }
 
    // Displays the test status
