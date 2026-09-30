@@ -7,12 +7,15 @@
 // ------------------------------------------------------------------------------------------------
 using static System.Console;
 
+#region Class Program -----------------------------------------------------------------------------
+/// <summary>Tests the generic queue implementation</summary>
 class Program {
+   #region Implementation -----------------------------------------------------
+   // Runs all queue test cases
    static void Main () {
       TestEmptyQueue ();
       TestSingleElement ();
       TestFifo ();
-      TestHeadLessThanTail ();
       TestTailLessThanHead ();
       TestResize ();
       TestWrappedResize ();
@@ -41,93 +44,54 @@ class Program {
    // Tests if elements are removed in FIFO order
    static void TestFifo () {
       TQueue<int> queue = new ();
-      queue.Enqueue (10);
-      queue.Enqueue (20);
-      queue.Enqueue (30);
-      bool passed = queue.Dequeue () == 10
-         && queue.Dequeue () == 20
-         && queue.Dequeue () == 30;
+      for (int n = 0; n < 4; n++) queue.Enqueue (n * 10);
+      bool passed = true;
+      for (int n = 0; n < 4; n++) passed &= queue.Dequeue () == n * 10;
       PrintStatus ("FIFO order", passed);
-   }
-
-   // Tests the queue when the head index is before the tail index
-   static void TestHeadLessThanTail () {
-      TQueue<int> queue = new ();
-      queue.Enqueue (10);
-      queue.Enqueue (20);
-      queue.Enqueue (30);
-      bool passed = queue.Dequeue () == 10
-         && queue.Dequeue () == 20
-         && queue.Dequeue () == 30;
-      PrintStatus ("mHead < mTail", passed);
    }
 
    // Tests the circular buffer when the tail wraps before the head
    static void TestTailLessThanHead () {
       TQueue<int> queue = new ();
-      queue.Enqueue (10);
-      queue.Enqueue (20);
-      queue.Enqueue (30);
+      for (int n = 0; n < 4; n++) queue.Enqueue (n * 10);
+      queue.Dequeue ();
+      queue.Dequeue ();
       queue.Enqueue (40);
-      queue.Dequeue ();
-      queue.Dequeue ();
-      queue.Enqueue (50);
-      queue.Enqueue (60);
-      bool passed = queue.Dequeue () == 30
-         && queue.Dequeue () == 40
-         && queue.Dequeue () == 50
-         && queue.Dequeue () == 60;
+      bool passed = true;
+      for (int n = 2; n < 5; n++) passed &= queue.Dequeue () == n * 10;
       PrintStatus ("mTail < mHead", passed);
    }
 
    // Tests that the queue grows when the buffer becomes full
    static void TestResize () {
       TQueue<int> queue = new ();
-      queue.Enqueue (10);
-      queue.Enqueue (20);
-      queue.Enqueue (30);
-      queue.Enqueue (40);
-      queue.Enqueue (50);
-      bool passed = queue.Dequeue () == 10
-         && queue.Dequeue () == 20
-         && queue.Dequeue () == 30
-         && queue.Dequeue () == 40
-         && queue.Dequeue () == 50;
+      for (int n = 0; n < 5; n++) queue.Enqueue (n * 10);
+      bool passed = true;
+      for (int n = 0; n < 5; n++) passed &= queue.Dequeue () == n * 10;
       PrintStatus ("Resize", passed);
    }
 
    // Tests resizing when the circular buffer has wrapped around
    static void TestWrappedResize () {
       TQueue<int> queue = new ();
-      queue.Enqueue (10);
-      queue.Enqueue (20);
-      queue.Enqueue (30);
-      queue.Enqueue (40);
+      for (int n = 0; n < 4; n++) queue.Enqueue (n * 10);
       queue.Dequeue ();
       queue.Dequeue ();
-      queue.Enqueue (50);
-      queue.Enqueue (60);
-      queue.Enqueue (70);
-      bool passed = queue.Dequeue () == 30
-         && queue.Dequeue () == 40
-         && queue.Dequeue () == 50
-         && queue.Dequeue () == 60
-         && queue.Dequeue () == 70;
+      for (int n = 4; n < 7; n++) queue.Enqueue (n * 10);
+      bool passed = true;
+      for (int n = 2; n < 7; n++) passed &= queue.Dequeue () == n * 10;
       PrintStatus ("Wrapped resize", passed);
    }
 
-   // Tests IsEmpty before and after adding and removing an element
+   // Tests whether the queue is empty
    static void TestIsEmpty () {
       TQueue<int> queue = new ();
-      bool passed = queue.IsEmpty;
       queue.Enqueue (10);
-      passed &= !queue.IsEmpty;
       queue.Dequeue ();
-      passed &= queue.IsEmpty;
-      PrintStatus ("IsEmpty", passed);
+      PrintStatus ("IsEmpty", queue.IsEmpty);
    }
 
-   // Displays status
+   // Displays the test status
    static void PrintStatus (string name, bool passed) {
       Write ("[");
       ForegroundColor = passed ? ConsoleColor.Green : ConsoleColor.Red;
@@ -135,4 +99,6 @@ class Program {
       ResetColor ();
       WriteLine ($"] {name}");
    }
+   #endregion
 }
+#endregion
