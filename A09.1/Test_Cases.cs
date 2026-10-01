@@ -8,19 +8,17 @@
 using static System.Console;
 
 #region Class Program -----------------------------------------------------------------------------
-/// <summary>
-/// Tests the generic queue implementation
-/// </summary>
+/// <summary>Tests the generic queue implementation</summary>
 class Program {
    #region Implementation -------------------------------------------
    // Runs all queue test cases
    static void Main () {
       TestEmptyQueue ();
-      TestSingleElement ();
-      TestFifo ();
-      TestTailLessThanHead ();
-      TestResize ();
-      TestWrappedResize ();
+      TestOrder ("Single element", 1);
+      TestOrder ("FIFO order", 4);
+      TestOrder ("mTail < mHead", 5, skip: 2, split: 4);
+      TestOrder ("Resize", 5);
+      TestOrder ("Wrapped resize", 7, skip: 2, split: 4);
       TestIsEmpty ();
    }
 
@@ -36,53 +34,17 @@ class Program {
       PrintStatus ("Dequeue empty queue", passed);
    }
 
-   // Tests adding and removing a single element
-   static void TestSingleElement () {
+   // Enqueues sData[0..count) and checks they dequeue in the same order
+   // skip: elements dequeued midway; split: elements enqueued before that (default: all)
+   static void TestOrder (string name, int count, int skip = 0, int split = -1) {
+      if (split < 0) split = count;
       TQueue<int> queue = new ();
-      queue.Enqueue (10);
-      PrintStatus ("Single element", queue.Dequeue () == 10);
-   }
-
-   // Tests if elements are removed in FIFO order
-   static void TestFifo () {
-      TQueue<int> queue = new ();
-      for (int n = 0; n < 4; n++) queue.Enqueue (n * 10);
+      for (int i = 0; i < split; i++) queue.Enqueue (sData[i]);
+      for (int i = 0; i < skip; i++) queue.Dequeue ();
+      for (int i = split; i < count; i++) queue.Enqueue (sData[i]);
       bool passed = true;
-      for (int n = 0; n < 4; n++) passed &= queue.Dequeue () == n * 10;
-      PrintStatus ("FIFO order", passed);
-   }
-
-   // Tests the circular buffer when the tail wraps before the head
-   static void TestTailLessThanHead () {
-      TQueue<int> queue = new ();
-      for (int n = 0; n < 4; n++) queue.Enqueue (n * 10);
-      queue.Dequeue ();
-      queue.Dequeue ();
-      queue.Enqueue (40);
-      bool passed = true;
-      for (int n = 2; n < 5; n++) passed &= queue.Dequeue () == n * 10;
-      PrintStatus ("mTail < mHead", passed);
-   }
-
-   // Tests that the queue grows when the buffer becomes full
-   static void TestResize () {
-      TQueue<int> queue = new ();
-      for (int n = 0; n < 5; n++) queue.Enqueue (n * 10);
-      bool passed = true;
-      for (int n = 0; n < 5; n++) passed &= queue.Dequeue () == n * 10;
-      PrintStatus ("Resize", passed);
-   }
-
-   // Tests resizing when the circular buffer has wrapped around
-   static void TestWrappedResize () {
-      TQueue<int> queue = new ();
-      for (int n = 0; n < 4; n++) queue.Enqueue (n * 10);
-      queue.Dequeue ();
-      queue.Dequeue ();
-      for (int n = 4; n < 7; n++) queue.Enqueue (n * 10);
-      bool passed = true;
-      for (int n = 2; n < 7; n++) passed &= queue.Dequeue () == n * 10;
-      PrintStatus ("Wrapped resize", passed);
+      for (int i = skip; i < count; i++) passed &= queue.Dequeue () == sData[i];
+      PrintStatus (name, passed);
    }
 
    // Tests whether the queue is empty
@@ -102,6 +64,10 @@ class Program {
       ResetColor ();
       WriteLine ($"] {name}");
    }
+   #endregion
+
+   #region Private data ---------------------------------------------
+   static readonly int[] sData = { 0, 10, 20, 30, 40, 50, 60 };    // Test Values
    #endregion
 }
 #endregion

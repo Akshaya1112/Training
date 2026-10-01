@@ -7,22 +7,16 @@
 // ------------------------------------------------------------------------------------------------
 
 #region Class TQueue ------------------------------------------------------------------------------
-/// <summary>
-/// Implements a generic queue using a circular buffer
-/// </summary>
+/// <summary>Implements a generic queue using a circular buffer</summary>
 /// <typeparam name="T"></typeparam>
 class TQueue<T> {
    #region Properties -----------------------------------------------
-   /// <summary>
-   /// Checks whether the queue contains no elements
-   /// </summary>
+   /// <summary>Checks whether the queue contains no elements</summary>
    public bool IsEmpty => mUsed == 0;
    #endregion
 
    #region Methods --------------------------------------------------
-   /// <summary>
-   /// Adds an element to the end of the queue
-   /// </summary>
+   /// <summary>Adds an element to the end of the queue</summary>
    /// <param name="a"></param>
    public void Enqueue (T a) {
       if (mUsed == mData.Length) Resize ();
@@ -31,10 +25,7 @@ class TQueue<T> {
       mUsed++;
    }
 
-   /// <summary>
-   /// Removes and returns the first element in the queue
-   /// </summary>
-   /// <returns></returns>
+   /// <summary>Removes and returns the first element in the queue</summary>
    /// <exception cref="InvalidOperationException"></exception>
    public T Dequeue () {
       if (mUsed == 0) throw new InvalidOperationException ("Queue is empty");
