@@ -24,19 +24,19 @@ class Evaluator {
       mOperators.Clear ();
       List<Token> tokens = [];
       var tokenizer = new Tokenizer (this, text);
-      for (; ; ) {
+      while (true) {
          var token = tokenizer.Next ();
          if (token is TEnd) break;
          if (token is TError err) throw new EvalException (err.Message);
          tokens.Add (token);
       }
+      // A leading "name =" makes this an assignment
       TVariable? tVariable = null;
-      if (tokens.Count > 2
-          && tokens[0] is TVariable tvar
-          && tokens[1] is TOpArithmetic { Op: '=' }) {
+      if (tokens.Count >= 2 && tokens[0] is TVariable tvar && IsAssignment (tokens[1])) {
          tVariable = tvar;
          tokens.RemoveRange (0, 2);
       }
+      if (tokens.Any (IsAssignment)) throw new EvalException ("Unexpected '='.");
       foreach (var token in tokens) Process (token);
       while (mOperators.Count > 0) {
          if (mOperators.Peek () is TPunctuation)
@@ -59,6 +59,9 @@ class Evaluator {
    #endregion
 
    #region Implementation -------------------------------------------
+   // Checks whether the token is the assignment operator
+   static bool IsAssignment (Token token) => token is TOpArithmetic arith && arith.Op == '=';
+
    // Processes a token using the operand and operator stacks
    void Process (Token token) {
       switch (token) {
@@ -79,16 +82,18 @@ class Evaluator {
       }
    }
 
-   // Pushes an operator after applying operators with higher precedence
-   // or equal precedence when the incoming operator is left-associative
+   // Pushes an operator after applying the operators that must be applied before it.
+   // Prefix operators have no left operand, so nothing on the stack is applied for them
    void PushOperator (TOperator op) {
-      while (mOperators.Count > 0
-         && mOperators.Peek () is TOperator top
-         && (top.Priority > op.Priority || (top.Priority == op.Priority
-         && op is not TOpArithmetic { Op: '^' })))
-         ApplyOperator ();
+      if (op is not TOpPrefix) while (ShouldApplyTop (op)) ApplyOperator ();
       mOperators.Push (op);
    }
+
+   // Checks whether the operator on top of the stack must be applied before the incoming operator.
+   bool ShouldApplyTop (TOperator op) =>
+      mOperators.Count > 0 && mOperators.Peek () is TOperator top
+      && (top.Priority > op.Priority || (top.Priority == op.Priority
+      && op is not TOpArithmetic { Op: '^' }));
 
    // Processes a closing parenthesis and applies its contained operators
    void CloseParenthesis () {
@@ -101,19 +106,24 @@ class Evaluator {
 
    // Applies the operator at the top of the operator stack
    void ApplyOperator () {
-      if (mOperators.Pop () is not TOperator op) throw new EvalException ("Invalid operator.");
-      if (op is TOpUnary unary) {
-         if (mOperands.Count < 1) throw new EvalException ("Missing operand.");
-         mOperands.Push (unary.Evaluate (mOperands.Pop ()));
-      } else if (op is TOpFunction func) {
-         if (mOperands.Count < 1) throw new EvalException ("Missing function argument.");
-         mOperands.Push (func.Evaluate (mOperands.Pop ()));
-      } else if (op is TOpArithmetic arith) {
-         if (mOperands.Count < 2) throw new EvalException ("Missing operand.");
-         double b = mOperands.Pop ();
-         double a = mOperands.Pop ();
-         mOperands.Push (arith.Evaluate (a, b));
+      switch (mOperators.Pop ()) {
+         case TOpPrefix prefix:
+            mOperands.Push (prefix.Evaluate (PopOperand ()));
+            break;
+         case TOpArithmetic arith:
+            double b = PopOperand ();
+            double a = PopOperand ();
+            mOperands.Push (arith.Evaluate (a, b));
+            break;
+         default:
+            throw new EvalException ("Invalid operator.");
       }
+   }
+
+   // Pops an operand from the operand stack
+   double PopOperand () {
+      if (mOperands.Count == 0) throw new EvalException ("Missing operand.");
+      return mOperands.Pop ();
    }
    #endregion
 
