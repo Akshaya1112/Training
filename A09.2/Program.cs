@@ -11,41 +11,46 @@ using static System.Console;
 /// <summary>Runs the expression evaluator</summary>
 class Program {
    #region Implementation -------------------------------------------
-   // Asks which mode to run: test cases, interactive evaluation, or exit
+   // Shows the main menu and runs the selected mode: test cases, interactive evaluation, or exit
    static void Main () {
       while (true) {
-         Write ("Enter 'test' to run test cases, " +
-                "'interactive' to evaluate expressions, or 'exit' to quit: ");
-         string mode = (ReadLine () ?? "exit").Trim ().ToLower ();
-         switch (mode) {
-            case "exit":
+         PrintTitle ("MAIN MENU");
+         WriteLine ("  [t] Test cases    [i] Interactive mode    [e] Exit");
+         Write ("  Select an option: ");
+         char key = char.ToLower (ReadKey ().KeyChar);
+         WriteLine ();
+         switch (key) {
+            case 'e':
                return;
-            case "test":
+            case 't':
+               Clear ();
                Tests.Run ();
                break;
-            case "interactive":
+            case 'i':
+               Clear ();
                if (RunInteractive ()) return;
                break;
             default:
                PrintLine ("Invalid choice.", ConsoleColor.Red);
                break;
          }
-         WriteLine ();
       }
    }
 
    // Evaluates the expressions typed by the user. Returns true if the user asked to
-   // exit the program, or false if the user asked to go back to the mode selection
+   // exit the program, or false if the user asked to go back to the main menu
    static bool RunInteractive () {
       Evaluator eval = new ();
-      WriteLine ("Enter an expression, 'back' to choose a mode again, or 'exit' to quit.");
+      PrintTitle ("INTERACTIVE MODE");
+      WriteLine ("  Type an expression, 'b' to go back to the menu, or 'e' to exit.");
       while (true) {
          ForegroundColor = ConsoleColor.Cyan;
-         Write ("> ");
+         Write ("  > ");
          ResetColor ();
-         string input = (ReadLine () ?? "exit").Trim ();
-         if (input == "exit") return true;
-         if (input == "back") return false;
+         string input = (ReadLine () ?? "e").Trim ();
+         string command = input.ToLower ();
+         if (command == "e") return true;
+         if (command == "b") return false;
          try {
             double result = eval.Evaluate (input);
             PrintLine (result.ToString (), ConsoleColor.Green);
@@ -55,12 +60,22 @@ class Program {
       }
    }
 
-   // Prints a line of text in the given color
+   // Prints a title followed by a line
+   static void PrintTitle (string title) {
+      WriteLine ($"\n  {title}\n  {new string ('-', LINEWIDTH)}");
+   }
+
+   // Prints an indented line of text in the given color
    static void PrintLine (string text, ConsoleColor color) {
       ForegroundColor = color;
-      WriteLine (text);
+      WriteLine ($"  {text}");
       ResetColor ();
    }
+   #endregion
+
+   #region Private data ---------------------------------------------
+   // Width of the line printed below the titles
+   const int LINEWIDTH = 60;
    #endregion
 }
 #endregion

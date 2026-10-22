@@ -29,7 +29,7 @@ static class Tests {
       }
       string result = passed == total ? "ALL TESTS PASSED" : "SOME TESTS FAILED";
       WriteLine ($"\n  {sLine}");
-      WriteLine ($" Total: {total}   Passed: {passed}   Failed: {total - passed}   =>   {result}");
+      WriteLine ($"  Total: {total}   Passed: {passed}   Failed: {total - passed}  =>  {result}");
       WriteLine ($"  {sLine}");
    }
    #endregion

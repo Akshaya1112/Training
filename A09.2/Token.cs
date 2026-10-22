@@ -89,47 +89,6 @@ abstract class TOpPrefix : TOperator {
 }
 #endregion
 
-#region Class TOpArithmetic -----------------------------------------------------------------------
-/// <summary>Represents a binary arithmetic operator</summary>
-class TOpArithmetic (char ch) : TOperator {
-   #region Properties -----------------------------------------------
-   /// <summary>Gets the arithmetic operator</summary>
-   public char Op { get; } = ch;
-
-   /// <summary>Gets the operator priority</summary>
-   public override int Priority => Op switch {
-      '=' => 0,
-      '+' or '-' => 1,
-      '*' or '/' => 2,
-      _ => 3
-   };
-   #endregion
-
-   #region Methods --------------------------------------------------
-   /// <summary>Checks whether the character is an arithmetic operator</summary>
-   /// <param name="ch">Character to check</param>
-   /// <returns>True if the character is an arithmetic operator</returns>
-   public static bool IsOperator (char ch) => "+-*/^=".Contains (ch);
-
-   /// <summary>Returns the string representation of the operator</summary>
-   public override string ToString () => $"op:{Op}:{Priority}";
-
-   /// <summary>Evaluates the binary arithmetic operation</summary>
-   /// <param name="a">First operand</param>
-   /// <param name="b">Second operand</param>
-   /// <returns>The result of the operation</returns>
-   public double Evaluate (double a, double b) => Op switch {
-      '+' => a + b,
-      '-' => a - b,
-      '*' => a * b,
-      '/' => b == 0 ? throw new EvalException ("Divide by zero.") : a / b,
-      '^' => Math.Pow (a, b),
-      '=' => b,
-      _ => throw new EvalException ($"Unknown operator: {Op}")
-   };
-   #endregion
-}
-#endregion
 
 #region Class TOpUnary ----------------------------------------------------------------------------
 /// <summary>Represents a unary arithmetic operator</summary>
@@ -204,6 +163,49 @@ class TOpFunction (string name) : TOpPrefix {
    #endregion
 }
 #endregion
+
+#region Class TOpArithmetic -----------------------------------------------------------------------
+/// <summary>Represents a binary arithmetic operator</summary>
+class TOpArithmetic (char ch) : TOperator {
+   #region Properties -----------------------------------------------
+   /// <summary>Gets the arithmetic operator</summary>
+   public char Op { get; } = ch;
+
+   /// <summary>Gets the operator priority</summary>
+   public override int Priority => Op switch {
+      '=' => 0,
+      '+' or '-' => 1,
+      '*' or '/' => 2,
+      _ => 3
+   };
+   #endregion
+
+   #region Methods --------------------------------------------------
+   /// <summary>Checks whether the character is an arithmetic operator</summary>
+   /// <param name="ch">Character to check</param>
+   /// <returns>True if the character is an arithmetic operator</returns>
+   public static bool IsOperator (char ch) => "+-*/^=".Contains (ch);
+
+   /// <summary>Returns the string representation of the operator</summary>
+   public override string ToString () => $"op:{Op}:{Priority}";
+
+   /// <summary>Evaluates the binary arithmetic operation</summary>
+   /// <param name="a">First operand</param>
+   /// <param name="b">Second operand</param>
+   /// <returns>The result of the operation</returns>
+   public double Evaluate (double a, double b) => Op switch {
+      '+' => a + b,
+      '-' => a - b,
+      '*' => a * b,
+      '/' => b == 0 ? throw new EvalException ("Divide by zero.") : a / b,
+      '^' => Math.Pow (a, b),
+      '=' => b,
+      _ => throw new EvalException ($"Unknown operator: {Op}")
+   };
+   #endregion
+}
+#endregion
+
 
 #region Class TPunctuation ------------------------------------------------------------------------
 /// <summary>Represents punctuation such as parentheses</summary>

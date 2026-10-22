@@ -26,10 +26,9 @@ class Tokenizer (Evaluator eval, string text) {
          char ch = mText[mN++];
          if (char.IsWhiteSpace (ch)) continue;
          return ch switch {
-            '.' => GetNumber (),
             '+' or '-' => IsUnary () ? new TOpUnary (ch) : new TOpArithmetic (ch),
             '(' or ')' => new TPunctuation (ch),
-            _ when DIGITS.Contains (ch) => GetNumber (),
+            _ when NUMBERCHARS.Contains (ch) => GetNumber (),
             _ when LETTERS.Contains (ch) => GetIdentifier (),
             _ when TOpArithmetic.IsOperator (ch) => new TOpArithmetic (ch),
             _ => new TError ($"Unknown symbol: {ch}")
@@ -63,11 +62,11 @@ class Tokenizer (Evaluator eval, string text) {
    #endregion
 
    #region Private data ---------------------------------------------
-   const string DIGITS = "0123456789";                    // Characters allowed in numbers
-   const string LETTERS = "abcdefghijklmnopqrstuvwxyz";   // Characters allowed in names
+   const string DIGITS = "0123456789";                    // Digits
+   const string LETTERS = "abcdefghijklmnopqrstuvwxyz";   // Letters
    const string NUMBERCHARS = DIGITS + ".";               // Characters allowed within a number
    const string NAMECHARS = LETTERS + DIGITS;             // Characters allowed within a name
-   readonly Evaluator mEval = eval;                       // Stores the evaluator used to create variable tokens
+   readonly Evaluator mEval = eval;                       // Stores the evaluator for variable tokens
    readonly string mText = text.ToLower ();               // Stores the expression being tokenized
    int mN;                                                // Stores the current position in the expression
    Token? mPrevious;                                      // Stores the previously generated token

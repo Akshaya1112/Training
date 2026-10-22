@@ -60,7 +60,7 @@ class Evaluator {
 
    #region Implementation -------------------------------------------
    // Checks whether the token is the assignment operator
-   static bool IsAssignment (Token token) => token is TOpArithmetic arith && arith.Op == '=';
+   static bool IsAssignment (Token token) => token is TOpArithmetic { Op: '=' };
 
    // Processes a token using the operand and operator stacks
    void Process (Token token) {
