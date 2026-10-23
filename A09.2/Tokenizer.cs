@@ -5,71 +5,92 @@
 // Tokenizer.cs
 // Converts an expression string into tokens.
 // ------------------------------------------------------------------------------------------------
+namespace Eval;
 
 #region Class Tokenizer ---------------------------------------------------------------------------
 /// <summary>Converts an expression string into tokens</summary>
-class Tokenizer (Evaluator eval, string text) {
+class Tokenizer {
+   #region Constructors ---------------------------------------------
+   /// <summary>Creates a tokenizer for the given text</summary>
+   /// <param name="eval">The evaluator that owns the tokens</param>
+   /// <param name="text">The expression text</param>
+   public Tokenizer (Evaluator eval, string text) {
+      mText = text; mN = 0; mEval = eval;
+   }
+   #endregion
+
    #region Methods --------------------------------------------------
-   /// <summary>Gets the next token from the expression</summary>
-   /// <returns>The next token</returns>
+   /// <summary>Returns the next token from the text</summary>
+   /// <returns>The next token; a TEnd at the end, or a TError for invalid input</returns>
    public Token Next () {
-      Token token = ReadToken ();
-      mPrevious = token;
-      return token;
+      while (mN < mText.Length) {
+         char ch = char.ToLower (mText[mN++]);
+         switch (ch) {
+            case ' ' or '\t': continue;
+            case (>= '0' and <= '9') or '.': return Remember (GetNumber ());
+            case '(' or ')': return Remember (new TPunctuation (ch));
+            case '+' or '-' or '*' or '/' or '^' or '=': return Remember (GetOperator (ch));
+            case >= 'a' and <= 'z': return Remember (GetIdentifier ());
+            default: return Remember (new TError ($"Unknown symbol: {ch}"));
+         }
+      }
+      return Remember (new TEnd ());
    }
    #endregion
 
    #region Implementation -------------------------------------------
-   // Reads the next token from the expression
-   Token ReadToken () {
+   // Stores the token as the previous one and returns it
+   Token Remember (Token token) {
+      mPrevious = token;
+      return token;
+   }
+
+   // Creates an operator token; a + or - at the start, after another operator
+   // or after an opening bracket is a unary operator
+   Token GetOperator (char ch) {
+      if ((ch == '+' || ch == '-') &&
+          (mPrevious is null or TOperator or TPunctuation { Punct: '(' }))
+         return new TOpUnary (mEval, ch);
+      return new TOpArithmetic (mEval, ch);
+   }
+
+   // Reads a letter followed by letters or digits (like x1) and returns a function
+   // token or a variable token
+   Token GetIdentifier () {
+      int start = mN - 1;
+      while (mN < mText.Length) {
+         char ch = char.ToLower (mText[mN++]);
+         if (ch is (>= 'a' and <= 'z') or (>= '0' and <= '9')) continue;
+         mN--; break;
+      }
+      string sub = mText[start..mN];
+      if (mFuncs.Contains (sub)) return new TOpFunction (mEval, sub);
+      else return new TVariable (mEval, sub);
+   }
+
+   // Reads a run of digits and dots and returns a literal token, or an error token
+   Token GetNumber () {
+      int start = mN - 1;
       while (mN < mText.Length) {
          char ch = mText[mN++];
-         if (char.IsWhiteSpace (ch)) continue;
-         return ch switch {
-            '+' or '-' => IsUnary () ? new TOpUnary (ch) : new TOpArithmetic (ch),
-            '(' or ')' => new TPunctuation (ch),
-            _ when NUMBERCHARS.Contains (ch) => GetNumber (),
-            _ when LETTERS.Contains (ch) => GetIdentifier (),
-            _ when TOpArithmetic.IsOperator (ch) => new TOpArithmetic (ch),
-            _ => new TError ($"Unknown symbol: {ch}")
-         };
+         if (ch is (>= '0' and <= '9') or '.') continue;
+         mN--; break;
       }
-      return new TEnd ();
-   }
-
-   // Determines whether the current plus or minus is unary
-   bool IsUnary () => mPrevious is null or TOperator or TPunctuation { Punct: '(' };
-
-   // Consumes the characters that are in the allowed set, and returns the text from 'start'
-   string Scan (int start, string allowed) {
-      while (mN < mText.Length && allowed.Contains (mText[mN])) mN++;
-      return mText[start..mN];
-   }
-
-   // Reads an identifier (letters followed by letters or digits) from the expression
-   Token GetIdentifier () {
-      string sub = Scan (mN - 1, NAMECHARS);
-      if (TOpFunction.IsFunction (sub)) return new TOpFunction (sub);
-      return new TVariable (mEval, sub);
-   }
-
-   // Reads a numeric literal from the expression
-   Token GetNumber () {
-      string sub = Scan (mN - 1, NUMBERCHARS);
+      // Now, mN points to the first character of mText that is not part of the number
+      string sub = mText[start..mN];
       if (double.TryParse (sub, out double f)) return new TLiteral (f);
       return new TError ($"Invalid number: {sub}");
    }
    #endregion
 
    #region Private data ---------------------------------------------
-   const string DIGITS = "0123456789";                    // Digits
-   const string LETTERS = "abcdefghijklmnopqrstuvwxyz";   // Letters
-   const string NUMBERCHARS = DIGITS + ".";               // Characters allowed within a number
-   const string NAMECHARS = LETTERS + DIGITS;             // Characters allowed within a name
-   readonly Evaluator mEval = eval;                       // Stores the evaluator for variables
-   readonly string mText = text.ToLower ();               // Stores the expression being tokenized
-   int mN;                                                // Stores the current position in text
-   Token? mPrevious;                                      // Stores the previously generated token
+   readonly Evaluator mEval;    // The evaluator that owns this
+   readonly string mText;       // The input text we're parsing through
+   int mN;                      // Position within the text
+   Token? mPrevious;            // The previously returned token
+
+   // Names of the supported functions
+   readonly string[] mFuncs = { "sin", "cos", "tan", "sqrt", "log", "exp", "asin", "acos", "atan" };
    #endregion
 }
 #endregion

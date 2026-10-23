@@ -5,6 +5,7 @@
 // Token.cs
 // Defines the token types used by the expression evaluator.
 // ------------------------------------------------------------------------------------------------
+namespace Eval;
 
 #region Class Token -------------------------------------------------------------------------------
 /// <summary>Base class for all expression tokens</summary>
@@ -23,195 +24,214 @@ abstract class TNumber : Token {
 #endregion
 
 #region Class TLiteral ----------------------------------------------------------------------------
-/// <summary>Represents a numeric literal</summary>
-class TLiteral (double f) : TNumber {
+/// <summary>A number written directly in the expression, like 3.14</summary>
+class TLiteral : TNumber {
+   #region Constructors ---------------------------------------------
+   /// <summary>Creates a literal token with the given value</summary>
+   /// <param name="f">The numeric value</param>
+   public TLiteral (double f) => mValue = f;
+   #endregion
+
    #region Properties -----------------------------------------------
    /// <summary>Gets the literal value</summary>
    public override double Value => mValue;
    #endregion
 
    #region Methods --------------------------------------------------
-   /// <summary>Returns the string representation of the literal</summary>
    public override string ToString () => $"literal:{Value}";
    #endregion
 
    #region Private data ---------------------------------------------
-   // Stores the literal value
-   readonly double mValue = f;
+   readonly double mValue;    // Stores the literal value
    #endregion
 }
 #endregion
 
 #region Class TVariable ---------------------------------------------------------------------------
-/// <summary>Represents a variable</summary>
-/// <param name="eval">Evaluator used to resolve the variable</param>
-/// <param name="name">Name of the variable</param>
-class TVariable (Evaluator eval, string name) : TNumber {
-   #region Properties -----------------------------------------------
-   /// <summary>Gets the variable name</summary>
-   public string Name { get; } = name;
+/// <summary>A variable name; its value is looked up in the evaluator when needed</summary>
+class TVariable : TNumber {
+   #region Constructors ---------------------------------------------
+   /// <summary>Creates a variable token</summary>
+   /// <param name="eval">The evaluator that stores the variable values</param>
+   /// <param name="name">The variable name</param>
+   public TVariable (Evaluator eval, string name) => (Name, mEval) = (name, eval);
+   #endregion
 
-   /// <summary>Gets the current value of the variable</summary>
+   #region Properties -----------------------------------------------
+   /// <summary>The name of the variable</summary>
+   public string Name { get; private set; }
+
+   /// <summary>The current value of the variable</summary>
+   /// <exception cref="EvalException">The variable has not been assigned</exception>
    public override double Value => mEval.GetVariable (Name);
    #endregion
 
    #region Methods --------------------------------------------------
-   /// <summary>Returns the string representation of the variable</summary>
    public override string ToString () => $"var:{Name}";
    #endregion
 
    #region Private data ---------------------------------------------
-   // Stores the evaluator used to resolve the variable
-   readonly Evaluator mEval = eval;
+   readonly Evaluator mEval;    // Stores the evaluator used to resolve the variable
    #endregion
 }
 #endregion
 
 #region Class TOperator ---------------------------------------------------------------------------
-/// <summary>Base class for all operators</summary>
+/// <summary>Base class for all operators (arithmetic, unary and functions)</summary>
 abstract class TOperator : Token {
+   #region Constructors ----------------------------------------------
+   /// <summary>Creates an operator token</summary>
+   /// <param name="eval">The evaluator that owns this operator</param>
+   protected TOperator (Evaluator eval) => mEval = eval;
+   #endregion
+
    #region Properties -----------------------------------------------
-   /// <summary>Gets the priority of the operator</summary>
+   /// <summary>The basic priority of this operator (higher binds tighter)</summary>
    public abstract int Priority { get; }
-   #endregion
-}
-#endregion
 
-#region Class TOpPrefix ---------------------------------------------------------------------------
-/// <summary>Base class for prefix operators that take a single operand</summary>
-abstract class TOpPrefix : TOperator {
-   #region Methods --------------------------------------------------
-   /// <summary>Evaluates the operator on a single operand</summary>
-   /// <param name="f">Operand to process</param>
-   /// <returns>The result of the operation</returns>
-   public abstract double Evaluate (double f);
-   #endregion
-}
-#endregion
-
-#region Class TOpUnary ----------------------------------------------------------------------------
-/// <summary>Represents a unary arithmetic operator</summary>
-class TOpUnary (char ch) : TOpPrefix {
-   #region Properties -----------------------------------------------
-   /// <summary>Gets the priority of the unary operator</summary>
-   public override int Priority => 3;
-   #endregion
-
-   #region Methods --------------------------------------------------
-   /// <summary>Evaluates the unary arithmetic operation</summary>
-   /// <param name="f">Operand to process</param>
-   /// <returns>The result of the operation</returns>
-   public override double Evaluate (double f) => ch == '-' ? -f : f;
-
-   /// <summary>Returns the string representation of the unary operator</summary>
-   public override string ToString () => $"unary:{ch}:{Priority}";
-   #endregion
-}
-#endregion
-
-#region Class TOpFunction -------------------------------------------------------------------------
-/// <summary>Represents a mathematical function</summary>
-class TOpFunction (string name) : TOpPrefix {
-   #region Properties -----------------------------------------------
-   /// <summary>Gets the function name</summary>
-   public string Func { get; } = name;
-
-   /// <summary>Gets the function priority</summary>
-   public override int Priority => 4;
-   #endregion
-
-   #region Methods --------------------------------------------------
-   /// <summary>Checks whether the name is a supported function</summary>
-   /// <param name="name">Name to check</param>
-   /// <returns>True if the name is a supported function</returns>
-   public static bool IsFunction (string name) => sNames.Contains (name);
-
-   /// <summary>Returns the string representation of the function</summary>
-   public override string ToString () => $"func:{Func}:{Priority}";
-
-   /// <summary>Evaluates the mathematical function</summary>
-   /// <param name="f">Function argument</param>
-   /// <returns>The function result</returns>
-   public override double Evaluate (double f) {
-      double result = Calculate (f);
-      if (!double.IsFinite (result)) throw new EvalException ($"Invalid argument for {Func}.");
-      return result;
-   }
-   #endregion
-
-   #region Implementation -------------------------------------------
-   // Calculates the function (trigonometric functions work in degrees)
-   double Calculate (double f) => Func switch {
-      "sin" => Math.Sin (double.DegreesToRadians (f)),
-      "cos" => Math.Cos (double.DegreesToRadians (f)),
-      "tan" => Math.Tan (double.DegreesToRadians (f)),
-      "asin" => double.RadiansToDegrees (Math.Asin (f)),
-      "acos" => double.RadiansToDegrees (Math.Acos (f)),
-      "atan" => double.RadiansToDegrees (Math.Atan (f)),
-      "sqrt" => Math.Sqrt (f),
-      "log" => Math.Log (f),
-      "exp" => Math.Exp (f),
-      _ => throw new EvalException ($"Unknown function: {Func}"),
-   };
+   /// <summary>The priority after adding the offset caused by enclosing brackets</summary>
+   public int FinalPriority { get; set; }
    #endregion
 
    #region Private data ---------------------------------------------
-   // Stores the supported function names
-   static readonly string[] sNames = ["sin", "cos", "tan", "asin", "acos",
-                                      "atan", "sqrt", "log", "exp"];
+   protected readonly Evaluator mEval;    // The evaluator that owns this operator
    #endregion
 }
 #endregion
 
 #region Class TOpArithmetic -----------------------------------------------------------------------
-/// <summary>Represents a binary arithmetic operator</summary>
-class TOpArithmetic (char ch) : TOperator {
-   #region Properties -----------------------------------------------
-   /// <summary>Gets the arithmetic operator</summary>
-   public char Op { get; } = ch;
+/// <summary>A binary operator: + - * / ^ or the assignment operator =</summary>
+class TOpArithmetic : TOperator {
+   #region Constructors ---------------------------------------------
+   /// <summary>Creates a binary operator token</summary>
+   /// <param name="eval">The evaluator that owns this operator</param>
+   /// <param name="ch">The operator character</param>
+   public TOpArithmetic (Evaluator eval, char ch) : base (eval) => Op = ch;
+   #endregion
 
-   /// <summary>Gets the operator priority</summary>
-   public override int Priority => Op switch {
-      '=' => 0,
-      '+' or '-' => 1,
-      '*' or '/' => 2,
-      _ => 5
-   };
+   #region Properties -----------------------------------------------
+   /// <summary>The operator character</summary>
+   public char Op { get; private set; }
+
+   /// <summary>The basic priority of this operator</summary>
+   public override int Priority => sPriority[Op];
    #endregion
 
    #region Methods --------------------------------------------------
-   /// <summary>Checks whether the character is an arithmetic operator</summary>
-   /// <param name="ch">Character to check</param>
-   /// <returns>True if the character is an arithmetic operator</returns>
-   public static bool IsOperator (char ch) => "+-*/^=".Contains (ch);
-
-   /// <summary>Returns the string representation of the operator</summary>
-   public override string ToString () => $"op:{Op}:{Priority}";
-
-   /// <summary>Evaluates the binary arithmetic operation</summary>
-   /// <param name="a">First operand</param>
-   /// <param name="b">Second operand</param>
+   /// <summary>Applies the operator to the two operands</summary>
+   /// <param name="a">The left operand</param>
+   /// <param name="b">The right operand</param>
    /// <returns>The result of the operation</returns>
-   public double Evaluate (double a, double b) => Op switch {
-      '+' => a + b,
-      '-' => a - b,
-      '*' => a * b,
-      '/' => b == 0 ? throw new EvalException ("Divide by zero.") : a / b,
-      '^' => Math.Pow (a, b),
-      '=' => b,
-      _ => throw new EvalException ($"Unknown operator: {Op}")
+   /// <exception cref="EvalException">The operator is not supported</exception>
+   public double Evaluate (double a, double b) {
+      return Op switch {
+         '+' => a + b,
+         '-' => a - b,
+         '*' => a * b,
+         '/' => a / b,
+         '^' => Math.Pow (a, b),
+         _ => throw new EvalException ($"Unknown operator: {Op}"),
+      };
+   }
+
+   public override string ToString () => $"op:{Op}:{Priority}";
+   #endregion
+
+   #region Private data ---------------------------------------------
+   // Priority of each operator character
+   static Dictionary<char, int> sPriority = new () {
+      ['+'] = 1, ['-'] = 1, ['*'] = 2, ['/'] = 2, ['^'] = 4, ['='] = 4,
    };
    #endregion
 }
 #endregion
 
+#region Class TOpUnary ----------------------------------------------------------------------------
+/// <summary>A unary plus or minus, like the minus in -5</summary>
+class TOpUnary : TOperator {
+   #region Constructors ---------------------------------------------
+   /// <summary>Creates a unary operator token</summary>
+   /// <param name="eval">The evaluator that owns this operator</param>
+   /// <param name="ch">The operator character, '+' or '-'</param>
+   public TOpUnary (Evaluator eval, char ch) : base (eval) => Op = ch;
+   #endregion
+
+   #region Properties -----------------------------------------------
+   /// <summary>The operator character</summary>
+   public char Op { get; private set; }
+
+   /// <summary>The basic priority of this operator</summary>
+   public override int Priority => 2;
+   #endregion
+
+   #region Methods --------------------------------------------------
+   /// <summary>Applies the operator to the operand</summary>
+   /// <param name="f">The operand</param>
+   /// <returns>The negated value for '-', otherwise the value unchanged</returns>
+   public double Evaluate (double f) => Op == '-' ? -f : f;
+
+   public override string ToString () => $"unary:{Op}:{Priority}";
+   #endregion
+}
+#endregion
+
+#region Class TOpFunction -------------------------------------------------------------------------
+/// <summary>A named function like sin or sqrt (trigonometry works in degrees)</summary>
+class TOpFunction : TOperator {
+   #region Constructors ---------------------------------------------
+   /// <summary>Creates a function token</summary>
+   /// <param name="eval">The evaluator that owns this function</param>
+   /// <param name="name">The function name</param>
+   public TOpFunction (Evaluator eval, string name) : base (eval) => Func = name;
+   #endregion
+
+   #region Properties -----------------------------------------------
+   /// <summary>The name of the function</summary>
+   public string Func { get; private set; }
+
+   /// <summary>The basic priority of this operator</summary>
+   public override int Priority => 3;
+   #endregion
+
+   #region Methods --------------------------------------------------
+   /// <summary>Applies the function to the argument</summary>
+   /// <param name="f">The argument (in degrees for trigonometric functions)</param>
+   /// <returns>The result (in degrees for inverse trigonometric functions)</returns>
+   /// <exception cref="EvalException">The function is not supported</exception>
+   public double Evaluate (double f) {
+      return Func switch {
+         "sin" => Math.Sin (D2R (f)),
+         "cos" => Math.Cos (D2R (f)),
+         "tan" => Math.Tan (D2R (f)),
+         "sqrt" => Math.Sqrt (f),
+         "log" => Math.Log (f),
+         "exp" => Math.Exp (f),
+         "asin" => R2D (Math.Asin (f)),
+         "acos" => R2D (Math.Acos (f)),
+         "atan" => R2D (Math.Atan (f)),
+         _ => throw new EvalException ($"Unknown function: {Func}")
+      };
+      double D2R (double f) => f * Math.PI / 180;   // Converts degrees to radians
+      double R2D (double f) => f * 180 / Math.PI;   // Converts radians to degrees
+   }
+
+   public override string ToString () => $"func:{Func}:{Priority}";
+   #endregion
+}
+#endregion
 
 #region Class TPunctuation ------------------------------------------------------------------------
-/// <summary>Represents punctuation such as parentheses</summary>
-class TPunctuation (char ch) : Token {
+/// <summary>A bracket character: ( or )</summary>
+class TPunctuation : Token {
+   #region Constructors ---------------------------------------------
+   /// <summary>Creates a punctuation token</summary>
+   /// <param name="ch">The bracket character</param>
+   public TPunctuation (char ch) => Punct = ch;
+   #endregion
+
    #region Properties -----------------------------------------------
-   /// <summary>Gets the punctuation character</summary>
-   public char Punct { get; } = ch;
+   /// <summary>The bracket character</summary>
+   public char Punct { get; private set; }
    #endregion
 
    #region Methods --------------------------------------------------
@@ -222,7 +242,7 @@ class TPunctuation (char ch) : Token {
 #endregion
 
 #region Class TEnd --------------------------------------------------------------------------------
-/// <summary>Represents the end of an expression</summary>
+/// <summary>Marks the end of the input text</summary>
 class TEnd : Token {
    #region Methods --------------------------------------------------
    /// <summary>Returns the string representation of the token</summary>
@@ -232,11 +252,17 @@ class TEnd : Token {
 #endregion
 
 #region Class TError ------------------------------------------------------------------------------
-/// <summary>Represents a tokenization error</summary>
-class TError (string message) : Token {
+/// <summary>Reports a problem found while tokenizing, like an unknown symbol</summary>
+class TError : Token {
+   #region Constructors ---------------------------------------------
+   /// <summary>Creates an error token</summary>
+   /// <param name="message">The description of the problem</param>
+   public TError (string message) => Message = message;
+   #endregion
+
    #region Properties -----------------------------------------------
-   /// <summary>Gets the error message</summary>
-   public string Message { get; } = message;
+   /// <summary>The description of the problem</summary>
+   public string Message { get; private set; }
    #endregion
 
    #region Methods --------------------------------------------------
