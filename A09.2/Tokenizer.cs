@@ -66,9 +66,9 @@ class Tokenizer (Evaluator eval, string text) {
    const string LETTERS = "abcdefghijklmnopqrstuvwxyz";   // Letters
    const string NUMBERCHARS = DIGITS + ".";               // Characters allowed within a number
    const string NAMECHARS = LETTERS + DIGITS;             // Characters allowed within a name
-   readonly Evaluator mEval = eval;                       // Stores the evaluator for variable tokens
+   readonly Evaluator mEval = eval;                       // Stores the evaluator for variables
    readonly string mText = text.ToLower ();               // Stores the expression being tokenized
-   int mN;                                                // Stores the current position in the expression
+   int mN;                                                // Stores the current position in text
    Token? mPrevious;                                      // Stores the previously generated token
    #endregion
 }

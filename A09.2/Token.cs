@@ -89,13 +89,12 @@ abstract class TOpPrefix : TOperator {
 }
 #endregion
 
-
 #region Class TOpUnary ----------------------------------------------------------------------------
 /// <summary>Represents a unary arithmetic operator</summary>
 class TOpUnary (char ch) : TOpPrefix {
    #region Properties -----------------------------------------------
    /// <summary>Gets the priority of the unary operator</summary>
-   public override int Priority => 4;
+   public override int Priority => 3;
    #endregion
 
    #region Methods --------------------------------------------------
@@ -118,7 +117,7 @@ class TOpFunction (string name) : TOpPrefix {
    public string Func { get; } = name;
 
    /// <summary>Gets the function priority</summary>
-   public override int Priority => 5;
+   public override int Priority => 4;
    #endregion
 
    #region Methods --------------------------------------------------
@@ -176,7 +175,7 @@ class TOpArithmetic (char ch) : TOperator {
       '=' => 0,
       '+' or '-' => 1,
       '*' or '/' => 2,
-      _ => 3
+      _ => 5
    };
    #endregion
 

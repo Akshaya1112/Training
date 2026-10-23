@@ -21,7 +21,7 @@ static class Tests {
       foreach (string line in sCases) {
          // A line starting with '#' is a group heading
          if (line.StartsWith ('#')) {
-            WriteLine ($"\n  {line.Substring (1).Trim ()}");
+            WriteLine ($"\n  {line[1..].Trim ()}");
             continue;
          }
          total++;
@@ -72,7 +72,7 @@ static class Tests {
    const int INPUTWIDTH = 22, VALUEWIDTH = 40, LINEWIDTH = 108;
    // Stores the line printed between the sections of the report
    static readonly string sLine = new ('-', LINEWIDTH);
-   // Each case is written as "expression => expected", where expected is a number or an error message.
+   // Each case is written "expression => expected", where expected is a number or an error message
    // A line starting with '#' is a group heading
    static readonly string[] sCases = [
       "# Basic arithmetic and precedence",
@@ -87,10 +87,11 @@ static class Tests {
       "# Unary plus and minus",
       "-3 => -3",
       "--3 => 3",
-      "-2 ^ 2 => 4",
-      "-10 ^ 2 => 100",
+      "-2 ^ 2 => -4",
+      "-10 ^ 2 => -100",
       "2 ^ -2 => 0.25",
-      "2 * -3 ^ 2 => 18",
+      "2 ^ (-2) => 0.25",
+      "2 * -3 ^ 2 => -18",
       "5 - -3 => 8",
       "5 - +3 => 2",
       "-(2 + 1) => -3",
@@ -102,6 +103,10 @@ static class Tests {
       "-sin 45 => -0.7071067812",
       "SIN(30) => 0.5",
       "sin sin 0 => 0",
+      "sin 2 => 0.0348994967",
+      "sin 0.25 => 0.004363309",
+      "sin 2^-2 => 0.004363309",
+      "sin(2^-2) => 0.004363309",
       "cos 0 => 1",
       "tan(45) => 1",
       "asin 1 => 90",
