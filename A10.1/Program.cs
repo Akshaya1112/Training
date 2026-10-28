@@ -21,7 +21,7 @@ class Progran {
       WriteLine (new string ('-', 105));
       int passedCount = 0, failedCount = 0;
       foreach (var path in sTestPaths) {
-         var (drive, folder, fileName, extension) = FilePathParser.Parse (path);
+         var (drive, folder, fileName, extension) = Parse (path);
          var passed = drive.Length > 0 && folder.Length > 0 &&
                       fileName.Length > 0 && extension.Length > 0;
          // Show a dash instead of the parts when parsing failed
@@ -40,29 +40,10 @@ class Progran {
       WriteLine ($"Total: {passedCount + failedCount} " +
                  $"| Passed: {passedCount} | Failed: {failedCount}");
    }
-   #endregion
 
-   #region Private data ---------------------------------------------
-   // Paths used to test the parser
-   static readonly string[] sTestPaths = [
-      @"Cz:\abc\def\r.txt", @"C:\abc\def\readme.txt", @"C:\README.TXT", @"C:\abc\.bcf",
-      @"C:\abc\bcf.", @"Readme.txt", @"C:\abc\def", @"C:\abc d", @"\abcd\Readme.txt", " ",
-      @"C:\ab.c\def\r.txt", @"C:\abc:d", @".\abc", ".abc", "abc", @"C:\abc6\def\r.txt",
-      @"C:\DIR\ARCHIVE.TAR.GZ", @"C:\work\r.txt", @"C:\\work~\\r.txt~",
-      @"C:\A\B\C\D\E\F\G\FILE.TXT", @"C:\DIR\\FILE.TXT",@"D:\WORK\TRAINING\FILE.TXT"];
-   #endregion
-}
-#endregion
-
-#region class FilePathParser ----------------------------------------------------------------------
-/// <summary>Splits a file path like C:\DIR\FILE.TXT into its parts using a state machine</summary>
-class FilePathParser {
-   #region Methods ---------------------------------------------------
-   /// <summary>Parses a file path of the form Drive:\Folder\...\FileName.Extension</summary>
-   /// <param name="input">The file path; only the letters A to Z are accepted in names</param>
-   /// <returns>A tuple of (drive, folder, file name, extension). Folders are separated by ','.
-   /// All four parts are empty if the path is not valid</returns>
-   public static (string, string, string, string) Parse (string input) {
+   //Splits a file path like C:\DIR\FILE.TXT into its parts using a state machine
+   static (string, string, string, string) Parse (string input) {
+      OutputEncoding = Encoding.UTF8;
       EState s = A;
       Action none = () => { }, todo;
       StringBuilder drive = new (), folder = new (), fileName = new (), extension = new ();
@@ -76,7 +57,7 @@ class FilePathParser {
             // Name characters; a '\' means the name so far was a folder, so add it to the folder
             (D or E, >= 'A' and <= 'Z') => (E, () => fileName.Append (ch)),
             (E, '\\') => (D, () => {
-               if (folder.Length > 0) folder.Append (',');
+               if (folder.Length > 0) folder.Append ('→');
                folder.Append (fileName);
                fileName.Clear ();
             }
@@ -94,6 +75,16 @@ class FilePathParser {
          ? (drive.ToString (), folder.ToString (), fileName.ToString (), extension.ToString ())
          : ("", "", "", "");
    }
+   #endregion
+
+   #region Private data ---------------------------------------------
+   // Paths used to test the parser
+   static readonly string[] sTestPaths = [
+      @"Cz:\abc\def\r.txt", @"C:\abc\def\readme.txt", @"C:\README.TXT", @"C:\abc\.bcf",
+      @"C:\abc\bcf.", @"Readme.txt", @"C:\abc\def", @"C:\abc d", @"\abcd\Readme.txt", " ",
+      @"C:\ab.c\def\r.txt", @"C:\abc:d", @".\abc", ".abc", "abc", @"C:\abc6\def\r.txt",
+      @"C:\DIR\ARCHIVE.TAR.GZ", @"C:\work\r.txt", @"C:\\work~\\r.txt~",
+      @"C:\A\B\C\D\E\F\G\FILE.TXT", @"C:\DIR\\FILE.TXT",@"D:\WORK\TRAINING\FILE.TXT"];
    #endregion
 }
 #endregion
