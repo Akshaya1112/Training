@@ -9,11 +9,11 @@ using System.Text;
 using static EState;
 using static System.Console;
 
-# region Class Program ----------------------------------------------------------------------------
-/// <summary>Tests the implementation of file path parser</summary>
+#region Class Program -----------------------------------------------------------------------------
+// Tests the implementation of file path parser
 class Program {
    #region Implementation -------------------------------------------
-   // Parses each test path and prints the drive, folder, file name and extension
+   // Parses each test path and prints the drive, folder, file name and extension.
    // A path passes if all four parts could be extracted
    static void Main () {
       WriteLine ($"{"INPUT",-32} {"DRIVE",-8} {"FOLDER",-20}" +
@@ -22,8 +22,7 @@ class Program {
       int passedCount = 0, failedCount = 0;
       foreach (var path in sTestPaths) {
          var (drive, folder, fileName, extension) = Parse (path);
-         var passed = drive.Length > 0 && folder.Length > 0 &&
-                      fileName.Length > 0 && extension.Length > 0;
+         var passed = drive.Length > 0;
          // Show a dash instead of the parts when parsing failed
          string driveStr = passed ? drive : "-";
          string folderStr = passed ? folder : "-";
@@ -41,10 +40,11 @@ class Program {
                  $"| Passed: {passedCount} | Failed: {failedCount}");
    }
 
-   //Splits a file path like C:\DIR\FILE.TXT into its parts using a state machine
+   // Splits a file path like C:\DIR\FILE.TXT into its parts using a state machine
    static (string, string, string, string) Parse (string input) {
       EState s = A;
       Action none = () => { }, todo;
+      bool hasFolder = false;
       StringBuilder drive = new (), folder = new (), fileName = new (), extension = new ();
       // A '~' is added at the end so the state machine can detect the end of the path
       foreach (var ch in input.Trim () + '~') {
@@ -56,15 +56,16 @@ class Program {
             // Name characters; a '\' means the name so far was a folder, so add it to the folder
             (D or E, >= 'A' and <= 'Z') => (E, () => fileName.Append (ch)),
             (E, '\\') => (D, () => {
+               hasFolder = true;
                if (folder.Length > 0) folder.Append ('\\');
                folder.Append (fileName);
                fileName.Clear ();
             }
             ),
             // A '.' starts the extension, which must end at the end marker
-            (E, '.') => (F, none),
+            (E, '.') when hasFolder => (F, none),
             (F or G, >= 'A' and <= 'Z') => (G, () => extension.Append (ch)),
-            (G, '~') when drive.Length > 0 => (H, none),
+            (G, '~') => (H, none),
             // Anything else is not a valid path
             _ => (Z, none)
          };
@@ -89,7 +90,7 @@ class Program {
 #endregion
 
 #region Enum EState -------------------------------------------------------------------------------
-/// <summary>The states of the file path parser</summary>
+// The states of the file path parser
 enum EState {
    A,    // Start: expecting the drive letter
    B,    // Got the drive letter: expecting ':'
