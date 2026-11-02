@@ -3,7 +3,7 @@
 // Copyright (c) TRUMPF Metamation India.
 // ------------------------------------------------------------------------------------------------
 // Evaluator.cs
-// EEvaluates mathematical expressions using operand and operator stacks.
+// Evaluates mathematical expressions using operand and operator stacks.
 // ------------------------------------------------------------------------------------------------
 namespace Eval;
 
@@ -32,6 +32,7 @@ class Evaluator {
    public double Evaluate (string text) {
       mOperands.Clear ();
       mOperators.Clear ();
+      BasePriority = 0;
       List<Token> tokens = new ();
       var tokenizer = new Tokenizer (this, text);
       for (; ; ) {
@@ -40,7 +41,6 @@ class Evaluator {
          if (token is TError err) throw new EvalException (err.Message);
          tokens.Add (token);
       }
-
       // Check if this is a variable assignment
       TVariable? tVariable = null;
       if (tokens.Count > 2 && tokens[0] is TVariable tvar &&
@@ -50,6 +50,8 @@ class Evaluator {
       }
       foreach (var t in tokens) Process (t);
       while (mOperators.Count > 0) ApplyOperator ();
+      if (BasePriority != 0) throw new EvalException ("Mismatched parenthesis");
+      if (mOperands.Count > 1) throw new EvalException ("Too many operands");
       double f = mOperands.Pop ();
       if (tVariable != null) mVars[tVariable.Name] = f;
       return f;
@@ -92,6 +94,7 @@ class Evaluator {
             break;
          case TPunctuation p:
             BasePriority += p.Punct == '(' ? 10 : -10;
+            if (BasePriority < 0) throw new EvalException ("Unexpected '(' parenthesis");
             break;
          default:
             throw new EvalException ($"Unknown token: {token}");
@@ -112,7 +115,7 @@ class Evaluator {
    #endregion
 
    #region Private data ---------------------------------------------
-   readonly Dictionary<string, double> mVars = [];    // Variable values by name
+   readonly Dictionary<string, double> mVars = [];        // Variable values by name
    readonly Stack<double> mOperands = new ();             // Operands waiting for an operator
    readonly Stack<TOperator> mOperators = new ();         // Operators waiting to be applied
    #endregion

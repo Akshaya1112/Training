@@ -161,7 +161,7 @@ class TOpUnary : TOperator {
    public char Op { get; private set; }
 
    /// <summary>The basic priority of this operator</summary>
-   public override int Priority => 2;
+   public override int Priority => 3;
    #endregion
 
    #region Methods --------------------------------------------------
@@ -190,7 +190,7 @@ class TOpFunction : TOperator {
    public string Func { get; private set; }
 
    /// <summary>The basic priority of this operator</summary>
-   public override int Priority => 3;
+   public override int Priority => 5;
    #endregion
 
    #region Methods --------------------------------------------------

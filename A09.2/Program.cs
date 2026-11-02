@@ -169,7 +169,8 @@ class Program {
       ["sqrt(9)+sqrt(16)"] = 7,
       ["2*sin(30)"] = 1,
       ["2^sin(30)"] = Math.Sqrt (2),    // function after a higher priority operator
-      ["2^sin 2^-2"] = Math.Pow (2, Math.Sin (0.25 * Math.PI / 180)),
+      ["2^sin 2^-2"] = Math.Pow (2, Math.Pow (Math.Sin (2 * Math.PI / 180), -2)),
+      ["2^sin(2^-2)"] = Math.Pow (2, Math.Sin (Math.Pow (2, -2) * Math.PI / 180)),
       ["exp(0)"] = 1,
       ["log(1)"] = 0,
 
@@ -193,6 +194,7 @@ class Program {
       ["1.2.3"] = "Invalid number",
       ["unknownvar+1"] = "Unknown variable",
       ["foo(2)"] = "Unknown variable",
+      ["2)+(3"] = "Unexpected '(' parenthesis",
       ["2+"] = "",
       [""] = "",
    };
