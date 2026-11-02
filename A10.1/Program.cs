@@ -11,7 +11,7 @@ using static System.Console;
 
 # region Class Program ----------------------------------------------------------------------------
 /// <summary>Tests the implementation of file path parser</summary>
-class Progran {
+class Program {
    #region Implementation -------------------------------------------
    // Parses each test path and prints the drive, folder, file name and extension
    // A path passes if all four parts could be extracted
@@ -43,7 +43,6 @@ class Progran {
 
    //Splits a file path like C:\DIR\FILE.TXT into its parts using a state machine
    static (string, string, string, string) Parse (string input) {
-      OutputEncoding = Encoding.UTF8;
       EState s = A;
       Action none = () => { }, todo;
       StringBuilder drive = new (), folder = new (), fileName = new (), extension = new ();
@@ -57,7 +56,7 @@ class Progran {
             // Name characters; a '\' means the name so far was a folder, so add it to the folder
             (D or E, >= 'A' and <= 'Z') => (E, () => fileName.Append (ch)),
             (E, '\\') => (D, () => {
-               if (folder.Length > 0) folder.Append ('→');
+               if (folder.Length > 0) folder.Append ('\\');
                folder.Append (fileName);
                fileName.Clear ();
             }
@@ -65,7 +64,7 @@ class Progran {
             // A '.' starts the extension, which must end at the end marker
             (E, '.') => (F, none),
             (F or G, >= 'A' and <= 'Z') => (G, () => extension.Append (ch)),
-            (G, '~') => (H, none),
+            (G, '~') when drive.Length > 0 => (H, none),
             // Anything else is not a valid path
             _ => (Z, none)
          };
