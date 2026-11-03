@@ -79,7 +79,7 @@ class TVariable : TNumber {
 #region Class TOperator ---------------------------------------------------------------------------
 /// <summary>Base class for all operators (arithmetic, unary and functions)</summary>
 abstract class TOperator : Token {
-   #region Constructors ----------------------------------------------
+   #region Constructors ---------------------------------------------
    /// <summary>Creates an operator token</summary>
    /// <param name="eval">The evaluator that owns this operator</param>
    protected TOperator (Evaluator eval) => mEval = eval;
@@ -139,7 +139,7 @@ class TOpArithmetic : TOperator {
 
    #region Private data ---------------------------------------------
    // Priority of each operator character
-   static Dictionary<char, int> sPriority = new () {
+   static readonly Dictionary<char, int> sPriority = new () {
       ['+'] = 1, ['-'] = 1, ['*'] = 2, ['/'] = 2, ['^'] = 4, ['='] = 4,
    };
    #endregion
@@ -168,7 +168,13 @@ class TOpUnary : TOperator {
    /// <summary>Applies the operator to the operand</summary>
    /// <param name="f">The operand</param>
    /// <returns>The negated value for '-', otherwise the value unchanged</returns>
-   public double Evaluate (double f) => Op == '-' ? -f : f;
+   public double Evaluate (double f) {
+      return Op switch {
+         '+' => f,
+         '-' => -f,
+         _ => throw new EvalException ("Unsupported unary operator")
+      };
+   }
 
    public override string ToString () => $"unary:{Op}:{Priority}";
    #endregion

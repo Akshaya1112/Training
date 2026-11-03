@@ -29,28 +29,29 @@ class Tokenizer {
             case ' ' or '\t': continue;
             case (>= '0' and <= '9') or '.': return Remember (GetNumber ());
             case '(' or ')': return Remember (new TPunctuation (ch));
-            case '+' or '-' or '*' or '/' or '^' or '=': return Remember (GetOperator (ch));
+            case '+' or '-' or '*' or '/' or '^' or '=' or '!' or '~': return Remember (GetOperator (ch));
             case >= 'a' and <= 'z': return Remember (GetIdentifier ());
             default: return Remember (new TError ($"Unknown symbol: {ch}"));
          }
       }
       return Remember (new TEnd ());
+
+      // Stores the token as the previous one and returns it
+      Token Remember (Token token) {
+         mPrevious = token;
+         return token;
+      }
    }
    #endregion
 
    #region Implementation -------------------------------------------
-   // Stores the token as the previous one and returns it
-   Token Remember (Token token) {
-      mPrevious = token;
-      return token;
-   }
-
    // Creates an operator token; a + or - at the start, after another operator
    // or after an opening bracket is a unary operator
    Token GetOperator (char ch) {
-      if ((ch == '+' || ch == '-') &&
+      if ((ch is '+' or '-') &&
           (mPrevious is null or TOperator or TPunctuation { Punct: '(' }))
          return new TOpUnary (mEval, ch);
+      if (ch is '!' or '~') return new TOpUnary (mEval, ch);
       return new TOpArithmetic (mEval, ch);
    }
 
@@ -64,7 +65,7 @@ class Tokenizer {
          mN--; break;
       }
       string sub = mText[start..mN];
-      if (mFuncs.Contains (sub)) return new TOpFunction (mEval, sub);
+      if (sFuncs.Contains (sub)) return new TOpFunction (mEval, sub);
       else return new TVariable (mEval, sub);
    }
 
@@ -90,7 +91,7 @@ class Tokenizer {
    Token? mPrevious;            // The previously returned token
 
    // Names of the supported functions
-   readonly string[] mFuncs = { "sin", "cos", "tan", "sqrt", "log", "exp", "asin", "acos", "atan" };
+   static readonly string[] sFuncs = { "sin", "cos", "tan", "sqrt", "log", "exp", "asin", "acos", "atan" };
    #endregion
 }
 #endregion

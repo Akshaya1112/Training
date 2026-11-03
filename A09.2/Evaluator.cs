@@ -65,16 +65,6 @@ class Evaluator {
       if (mVars.TryGetValue (name, out double f)) return f;
       throw new EvalException ($"Unknown variable: {name}");
    }
-
-   /// <summary>Checks if the operator can be pushed without applying the one on top</summary>
-   /// <param name="op">The operator about to be pushed</param>
-   /// <returns>True if it has higher priority, or if it is a right-associative ^</returns>
-   public bool OkToPush (TOperator op) {
-      if (mOperators.Count == 0) return true;
-      TOperator prev = mOperators.Peek ();
-      return prev.FinalPriority < op.FinalPriority ||
-             (prev.FinalPriority == op.FinalPriority && op is TOpArithmetic { Op: '^' });
-   }
    #endregion
 
    #region Implementation -------------------------------------------
@@ -88,13 +78,12 @@ class Evaluator {
             op.FinalPriority = op.Priority + BasePriority;
             // Unary operators and functions are prefix operators with no left operand,
             // so nothing on the stack may be applied before pushing them
-            if (op is not (TOpUnary or TOpFunction))
-               while (!OkToPush (op)) ApplyOperator ();
+            while (!OkToPush (op)) ApplyOperator ();
             mOperators.Push (op);
             break;
          case TPunctuation p:
             BasePriority += p.Punct == '(' ? 10 : -10;
-            if (BasePriority < 0) throw new EvalException ("Unexpected '(' parenthesis");
+            if (BasePriority < 0) throw new EvalException ("Mismatched parenthesis");
             break;
          default:
             throw new EvalException ($"Unknown token: {token}");
@@ -112,12 +101,21 @@ class Evaluator {
          mOperands.Push (arith.Evaluate (f2, f1));
       }
    }
+
+   // Checks if the operator can be pushed without applying the one on top
+   bool OkToPush (TOperator op) {
+      if (mOperators.Count == 0) return true;
+      TOperator prev = mOperators.Peek ();
+      return prev.FinalPriority < op.FinalPriority ||
+             (prev.FinalPriority == op.FinalPriority && op is TOpArithmetic { Op: '^' }) ||
+             op is TOpUnary or TOpFunction;
+   }
    #endregion
 
    #region Private data ---------------------------------------------
-   readonly Dictionary<string, double> mVars = [];        // Variable values by name
    readonly Stack<double> mOperands = new ();             // Operands waiting for an operator
    readonly Stack<TOperator> mOperators = new ();         // Operators waiting to be applied
+   readonly Dictionary<string, double> mVars = [];        // Variable values by name
    #endregion
 }
 #endregion

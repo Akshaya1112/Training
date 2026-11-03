@@ -194,7 +194,7 @@ class Program {
       ["1.2.3"] = "Invalid number",
       ["unknownvar+1"] = "Unknown variable",
       ["foo(2)"] = "Unknown variable",
-      ["2)+(3"] = "Unexpected '(' parenthesis",
+      ["2)+(3"] = "Mismatched parenthesis",
       ["2+"] = "",
       [""] = "",
    };
