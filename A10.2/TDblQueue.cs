@@ -7,7 +7,7 @@
 // ------------------------------------------------------------------------------------------------
 using static ESide;
 
-#region Class TDblQueue -------------------------------------------------------------------
+#region Class TDblQueue ---------------------------------------------------------------------------
 /// <summary>Generic double-ended queue implemented as a resizable circular buffer</summary>
 class TDblQueue<T> {
    #region Properties -----------------------------------------------

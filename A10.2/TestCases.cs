@@ -164,7 +164,7 @@ class TestCases {
 
    // Tests whether the queue is empty
    static void TestIsEmpty () {
-      TDblQueue<int> queue = new ();                       // []
+      TDblQueue<int> queue = new ();
       PrintStatus ("Initially empty", queue.IsEmpty);
       queue.EnqueueTail (10);                                      // [10]
       PrintStatus ("Not empty after EnqueueTail", !queue.IsEmpty);
