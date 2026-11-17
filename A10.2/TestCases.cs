@@ -5,6 +5,7 @@
 // TestCases.cs
 // Tests the generic double-ended queue implementation
 // ------------------------------------------------------------------------------------------------
+using static ESide;
 using static System.Console;
 
 #region Class TestCases ---------------------------------------------------------------------------
@@ -32,190 +33,184 @@ class TestCases {
 
    // Tests if dequeue operations throw an exception for an empty queue
    static void TestEmptyThrows () {
-      TDblQueue<int> queue = new ();
-      PrintStatus ("DequeueHead on empty queue", Throws (() => queue.DequeueHead ()));
-      PrintStatus ("DequeueTail on empty queue", Throws (() => queue.DequeueTail ()));
+      PrintStatus ("DequeueHead on empty queue", Throws (() => sQueue.DequeueHead ()));
+      PrintStatus ("DequeueTail on empty queue", Throws (() => sQueue.DequeueTail ()));
       // A queue that was filled and then emptied (its indices have moved)
-      queue.EnqueueTail (10);
-      queue.DequeueHead ();
-      PrintStatus ("DequeueHead on emptied queue", Throws (() => queue.DequeueHead ()));
-      PrintStatus ("DequeueTail on emptied queue", Throws (() => queue.DequeueTail ()));
+      sQueue.EnqueueTail (10);
+      sQueue.DequeueHead ();
+      PrintStatus ("DequeueHead on emptied queue", Throws (() => sQueue.DequeueHead ()));
+      PrintStatus ("DequeueTail on emptied queue", Throws (() => sQueue.DequeueTail ()));
+      sQueue.Clear ();
    }
 
    // Tests insertion at tail and removal from head
    static void TestTailHeadOrder () {
-      TDblQueue<int> queue = new ();
-      FillTail (queue, 0, sData.Length);       // [0, 10, 20, 30], 40 triggers Resize -> [0 ... 60]
-      PrintStatus ("EnqueueTail and DequeueHead order", CheckHead (queue, 0, sData.Length));
+      Fill (0, sDataCount, Tail);       // [0, 10, 20, 30], 40 triggers Resize -> [0 ... 60]
+      PrintStatus ("EnqueueTail and DequeueHead order", Check (0, sDataCount, Head));
+      sQueue.Clear ();
    }
 
    // Tests insertion at head and removal from tail
    static void TestHeadTailOrder () {
-      TDblQueue<int> queue = new ();
-      FillHead (queue, 0, sData.Length);       // [30, 20, 10, 0], 40 triggers Resize -> [60 ... 0]
-      PrintStatus ("EnqueueHead and DequeueTail order", CheckTail (queue, 0, sData.Length));
+      Fill (0, sDataCount, Head);       // [30, 20, 10, 0], 40 triggers Resize -> [60 ... 0]
+      PrintStatus ("EnqueueHead and DequeueTail order", Check (0, sDataCount, Tail));
+      sQueue.Clear ();
    }
 
    // Tests insertion and removal from both ends
    static void TestMixedOrder () {
-      TDblQueue<int> queue = new ();
-      queue.EnqueueTail (10);                         // [10]
-      queue.EnqueueHead (20);                         // [20, 10]
-      queue.EnqueueTail (30);                         // [20, 10, 30]
-      queue.EnqueueHead (40);                         // [40, 20, 10, 30]
-      bool passed = queue.DequeueHead () == 40;       // [20, 10, 30]
-      passed &= queue.DequeueTail () == 30;           // [20, 10]
-      queue.EnqueueTail (50);                         // [20, 10, 50]
-      queue.EnqueueHead (60);                         // [60, 20, 10, 50]
-      passed &= queue.DequeueHead () == 60;           // [20, 10, 50]
-      passed &= queue.DequeueTail () == 50;           // [20, 10]
-      passed &= queue.DequeueHead () == 20;           // [10]
-      passed &= queue.DequeueTail () == 10;           // []
+      sQueue.EnqueueTail (10);                         // [10]
+      sQueue.EnqueueHead (20);                         // [20, 10]
+      sQueue.EnqueueTail (30);                         // [20, 10, 30]
+      sQueue.EnqueueHead (40);                         // [40, 20, 10, 30]
+      bool passed = sQueue.DequeueHead () == 40;       // [20, 10, 30]
+      passed &= sQueue.DequeueTail () == 30;           // [20, 10]
+      sQueue.EnqueueTail (50);                         // [20, 10, 50]
+      sQueue.EnqueueHead (60);                         // [60, 20, 10, 50]
+      passed &= sQueue.DequeueHead () == 60;           // [20, 10, 50]
+      passed &= sQueue.DequeueTail () == 50;           // [20, 10]
+      passed &= sQueue.DequeueHead () == 20;           // [10]
+      passed &= sQueue.DequeueTail () == 10;           // []
       PrintStatus ("Mixed Enqueue and Dequeue order", passed);
+      sQueue.Clear ();
    }
 
    // Tests circular wrapping when inserting at tail (assumes an initial capacity of 4)
    static void TestTailWrap () {
-      TDblQueue<int> queue = new ();
-      FillTail (queue, 0, 4);             // [0, 10, 20, 30], full, tail wrapped to index 0
-      queue.DequeueHead ();               // [10, 20, 30]
-      queue.DequeueHead ();               // [20, 30], head at index 2
-      FillTail (queue, 4, 6);             // [20, 30, 40, 50], 40 and 50 wrapped to indices 0 and 1
-      PrintStatus ("Circular wrap at tail", CheckHead (queue, 2, 6));
+      Fill (0, 4, Tail);                  // [0, 10, 20, 30], full, tail wrapped to index 0
+      sQueue.DequeueHead ();              // [10, 20, 30]
+      sQueue.DequeueHead ();              // [20, 30], head at index 2
+      Fill (4, 6, Tail);                  // [20, 30, 40, 50], 40 and 50 wrapped to indices 0 and 1
+      PrintStatus ("Circular wrap at tail", Check (2, 6, Head));
+      sQueue.Clear ();
    }
 
    // Tests circular wrapping when inserting at head (assumes an initial capacity of 4)
    static void TestHeadWrap () {
-      TDblQueue<int> queue = new ();
-      FillHead (queue, 0, 4);        // [30, 20, 10, 0], full
-      queue.DequeueTail ();          // [30, 20, 10]
-      queue.DequeueTail ();          // [30, 20]
-      FillHead (queue, 4, 6);        // [50, 40, 30, 20], 40 and 50 wrapped back to indices 3 and 2
-      PrintStatus ("Circular wrap at head", CheckTail (queue, 2, 6));
+      Fill (0, 4, Head);             // [30, 20, 10, 0], full
+      sQueue.DequeueTail ();         // [30, 20, 10]
+      sQueue.DequeueTail ();         // [30, 20]
+      Fill (4, 6, Head);             // [50, 40, 30, 20], 40 and 50 wrapped back to indices 3 and 2
+      PrintStatus ("Circular wrap at head", Check (2, 6, Tail));
+      sQueue.Clear ();
    }
 
    // Tests resizing when elements are inserted at tail
    static void TestTailResize () {
-      TDblQueue<int> queue = new ();
-      FillTail (queue, 0, sData.Length);              // [0, 10, 20, 30], 40 triggers Resize -> [0 ... 60]
-      bool passed = queue.Count == sData.Length;
-      passed &= CheckHead (queue, 0, sData.Length);   // 0 ... 60 in the order added
+      Fill (0, sDataCount, Tail);                       // [0, 10, 20, 30], 40 triggers Resize -> [0 ... 60]
+      bool passed = sQueue.Count == sDataCount;
+      passed &= Check (0, sDataCount, Head);            // 0 ... 60 in the order added
       PrintStatus ("Resize using EnqueueTail", passed);
+      sQueue.Clear ();
    }
 
    // Tests resizing when elements are inserted at head
    static void TestHeadResize () {
-      TDblQueue<int> queue = new ();
-      FillHead (queue, 0, sData.Length);       // [30, 20, 10, 0], 40 triggers Resize -> [60 ... 0]
-      bool passed = queue.Count == sData.Length;
+      Fill (0, sDataCount, Head);       // [30, 20, 10, 0], 40 triggers Resize -> [60 ... 0]
+      bool passed = sQueue.Count == sDataCount;
       // Head inserts come back out of the head in reverse order
-      for (int i = sData.Length - 1; i >= 0; i--) passed &= queue.DequeueHead () == sData[i];
+      for (int i = sDataCount - 1; i >= 0; i--) passed &= sQueue.DequeueHead () == sData[i];
       PrintStatus ("Resize using EnqueueHead", passed);
+      sQueue.Clear ();
    }
 
    // Tests resizing (triggered by EnqueueTail) when elements are stored across the circular boundary
    // (assumes an initial capacity of 4)
    static void TestWrappedTailResize () {
-      TDblQueue<int> queue = new ();
-      FillTail (queue, 0, 4);              // [0, 10, 20, 30], full
-      queue.DequeueHead ();                // [10, 20, 30]
-      queue.DequeueHead ();                // [20, 30]
-      FillTail (queue, 4, sData.Length);   // [20, 30, 40, 50] full and wrapped, 60 triggers Resize -> [20 ... 60]
-      bool passed = queue.Count == sData.Length - 2;
-      passed &= CheckHead (queue, 2, sData.Length);   // 20 ... 60, order kept by Resize
+      Fill (0, 4, Tail);                   // [0, 10, 20, 30], full
+      sQueue.DequeueHead ();               // [10, 20, 30]
+      sQueue.DequeueHead ();               // [20, 30]
+      Fill (4, sDataCount, Tail);          // [20, 30, 40, 50] full and wrapped, 60 triggers Resize -> [20 ... 60]
+      bool passed = sQueue.Count == sDataCount - 2;
+      passed &= Check (2, sDataCount, Head);   // 20 ... 60, order kept by Resize
       PrintStatus ("Resize at tail after wrapping", passed);
+      sQueue.Clear ();
    }
 
    // Tests resizing (triggered by EnqueueHead) when elements are stored across the circular boundary
    // (assumes an initial capacity of 4)
    static void TestWrappedHeadResize () {
-      TDblQueue<int> queue = new ();
-      FillTail (queue, 0, 4);                         // [0, 10, 20, 30], full
-      queue.DequeueHead ();                           // [10, 20, 30]
-      queue.DequeueHead ();                           // [20, 30]
-      FillTail (queue, 4, 6);                         // [20, 30, 40, 50], full and wrapped
-      queue.EnqueueHead (-1);                         // triggers Resize -> [-1, 20, 30, 40, 50]
-      bool passed = queue.Count == 5;
-      passed &= queue.DequeueHead () == -1;           // [20, 30, 40, 50]
-      passed &= CheckHead (queue, 2, 6);              // 20 ... 50, order kept by Resize
+      Fill (0, 4, Tail);                              // [0, 10, 20, 30], full
+      sQueue.DequeueHead ();                          // [10, 20, 30]
+      sQueue.DequeueHead ();                          // [20, 30]
+      Fill (4, 6, Tail);                              // [20, 30, 40, 50], full and wrapped
+      sQueue.EnqueueHead (-1);                        // triggers Resize -> [-1, 20, 30, 40, 50]
+      bool passed = sQueue.Count == 5;
+      passed &= sQueue.DequeueHead () == -1;          // [20, 30, 40, 50]
+      passed &= Check (2, 6, Head);                   // 20 ... 50, order kept by Resize
       PrintStatus ("Resize at head after wrapping", passed);
+      sQueue.Clear ();
    }
 
    // Tests growing more than once (capacity 4 -> 8 -> 16 -> 32)
    static void TestMultipleResize () {
-      const int count = 20;
-      TDblQueue<int> queue = new ();
-      for (int i = 0; i < count; i++) queue.EnqueueTail (i);   // [0 ... 19], Resize at the 5th, 9th and 17th item
-      bool passed = queue.Count == count;
-      for (int i = 0; i < count; i++) passed &= queue.DequeueHead () == i;
+      const int COUNT = 20;
+      for (int i = 0; i < COUNT; i++) sQueue.EnqueueTail (i);   // [0 ... 19], Resize at the 5th, 9th and 17th item
+      bool passed = sQueue.Count == COUNT;
+      for (int i = 0; i < COUNT; i++) passed &= sQueue.DequeueHead () == i;
       PrintStatus ("Multiple resizes", passed);
+      sQueue.Clear ();
    }
 
    // Tests that a queue can be filled again after it has been emptied
    static void TestReuse () {
-      TDblQueue<int> queue = new ();
-      FillTail (queue, 0, 3);                            // [0, 10, 20]
-      for (int i = 0; i < 3; i++) queue.DequeueHead ();  // [], head and tail now at index 3
-      FillTail (queue, 0, sData.Length);                 // [0, 10, 20, 30] wraps, 40 triggers Resize -> [0 ... 60]
-      bool passed = queue.Count == sData.Length;
-      passed &= CheckHead (queue, 0, sData.Length);      // 0 ... 60 in the order added
+      Fill (0, 3, Tail);                                     // [0, 10, 20]
+      for (int i = 0; i < 3; i++) sQueue.DequeueHead ();     // [], head and tail now at index 3
+      Fill (0, sDataCount, Tail);                            // [0, 10, 20, 30] wraps, 40 triggers Resize -> [0 ... 60]
+      bool passed = sQueue.Count == sDataCount;
+      passed &= Check (0, sDataCount, Head);                 // 0 ... 60 in the order added
       PrintStatus ("Reuse after emptied", passed);
+      sQueue.Clear ();
    }
 
    // Tests whether the queue is empty
    static void TestIsEmpty () {
-      TDblQueue<int> queue = new ();
-      PrintStatus ("Initially empty", queue.IsEmpty);
-      queue.EnqueueTail (10);                                      // [10]
-      PrintStatus ("Not empty after EnqueueTail", !queue.IsEmpty);
-      queue.DequeueHead ();                                        // []
-      PrintStatus ("Empty after DequeueHead", queue.IsEmpty);
-      queue.EnqueueHead (20);                                      // [20]
-      PrintStatus ("Not empty after EnqueueHead", !queue.IsEmpty);
-      queue.DequeueTail ();                                        // []
-      PrintStatus ("Empty after DequeueTail", queue.IsEmpty);
+      PrintStatus ("Initially empty", sQueue.IsEmpty);
+      sQueue.EnqueueTail (10);                                      // [10]
+      PrintStatus ("Not empty after EnqueueTail", !sQueue.IsEmpty);
+      sQueue.DequeueHead ();                                        // []
+      PrintStatus ("Empty after DequeueHead", sQueue.IsEmpty);
+      sQueue.EnqueueHead (20);                                      // [20]
+      PrintStatus ("Not empty after EnqueueHead", !sQueue.IsEmpty);
+      sQueue.DequeueTail ();                                        // []
+      PrintStatus ("Empty after DequeueTail", sQueue.IsEmpty);
+      sQueue.Clear ();
    }
 
    // Tests whether Count is updated correctly
    static void TestCount () {
-      TDblQueue<int> queue = new ();
-      bool passed = queue.Count == 0;                 // []
-      queue.EnqueueTail (10);                         // [10]
-      queue.EnqueueHead (20);                         // [20, 10]
-      queue.EnqueueTail (30);                         // [20, 10, 30]
-      passed &= queue.Count == 3;
-      queue.DequeueHead ();                           // [10, 30]
-      passed &= queue.Count == 2;
-      queue.DequeueTail ();                           // [10]
-      passed &= queue.Count == 1;
-      queue.DequeueHead ();                           // []
-      passed &= queue.Count == 0;
+      bool passed = sQueue.Count == 0;                 // []
+      sQueue.EnqueueTail (10);                         // [10]
+      sQueue.EnqueueHead (20);                         // [20, 10]
+      sQueue.EnqueueTail (30);                         // [20, 10, 30]
+      passed &= sQueue.Count == 3;
+      sQueue.DequeueHead ();                           // [10, 30]
+      passed &= sQueue.Count == 2;
+      sQueue.DequeueTail ();                           // [10]
+      passed &= sQueue.Count == 1;
+      sQueue.DequeueHead ();                           // []
+      passed &= sQueue.Count == 0;
       PrintStatus ("Count updates correctly", passed);
+      sQueue.Clear ();
    }
    #endregion
 
    #region Helpers --------------------------------------------------
-   // Enqueues test values from index 'from' until 'to' at the queue's tail
-   static void FillTail (TDblQueue<int> queue, int from, int to) {
-      for (int i = from; i < to; i++) queue.EnqueueTail (sData[i]);
+   // Enqueues test values from index 'from' until 'to' at the given side of the queue
+   static void Fill (int from, int to, ESide side) {
+      for (int i = from; i < to; i++) {
+         if (side == Tail) sQueue.EnqueueTail (sData[i]);
+         else sQueue.EnqueueHead (sData[i]);
+      }
    }
 
-   // Enqueues test values from index 'from' until 'to' at the queue's head
-   static void FillHead (TDblQueue<int> queue, int from, int to) {
-      for (int i = from; i < to; i++) queue.EnqueueHead (sData[i]);
-   }
-
-   // Dequeues from the head and compares with test values from 'from' until 'to'
-   static bool CheckHead (TDblQueue<int> queue, int from, int to) {
+   // Dequeues from the given side and compares with test values from 'from' until 'to'
+   static bool Check (int from, int to, ESide side) {
       bool passed = true;
-      for (int i = from; i < to; i++) passed &= queue.DequeueHead () == sData[i];
-      return passed;
-   }
-
-   // Dequeues from the tail and compares with test values from 'from' until 'to'
-   static bool CheckTail (TDblQueue<int> queue, int from, int to) {
-      bool passed = true;
-      for (int i = from; i < to; i++) passed &= queue.DequeueTail () == sData[i];
+      for (int i = from; i < to; i++) {
+         int a = side == Head ? sQueue.DequeueHead () : sQueue.DequeueTail ();
+         passed &= a == sData[i];
+      }
       return passed;
    }
 
@@ -237,8 +232,9 @@ class TestCases {
    #endregion
 
    #region Private data ---------------------------------------------
-   static readonly int[] sData = { 0, 10, 20, 30, 40, 50, 60 };      // Test Values
-   static int sPass, sFail;                                          // Pass and fail counts
+   static readonly int[] sData = [0, 10, 20, 30, 40, 50, 60];    // Test Values
+   static TDblQueue<int> sQueue = new ();                          // Queue shared by all tests, cleared after each
+   static int sPass, sFail, sDataCount = sData.Length;             // Pass and fail counts and  Number of test values
    #endregion
 }
 #endregion

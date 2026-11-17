@@ -33,6 +33,12 @@ class TDblQueue<T> {
 
    /// <summary>Removes and returns the element at the tail of the queue</summary>
    public T DequeueTail () => Dequeue (Tail);
+
+   /// <summary>Removes all elements and restores the buffer to its initial capacity</summary>
+   public void Clear () {
+      mData = new T[INITCAPACITY];
+      (mHead, mTail, mUsed) = (0, 0, 0);
+   }
    #endregion
 
    #region Implementation -------------------------------------------
