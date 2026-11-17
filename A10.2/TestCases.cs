@@ -232,9 +232,9 @@ class TestCases {
    #endregion
 
    #region Private data ---------------------------------------------
-   static readonly int[] sData = [0, 10, 20, 30, 40, 50, 60];    // Test Values
+   static readonly int[] sData = [0, 10, 20, 30, 40, 50, 60];      // Test Values
    static TDblQueue<int> sQueue = new ();                          // Queue shared by all tests, cleared after each
-   static int sPass, sFail, sDataCount = sData.Length;             // Pass and fail counts and  Number of test values
+   static int sPass, sFail, sDataCount = sData.Length;             // Pass and fail counts and  number of test values
    #endregion
 }
 #endregion

@@ -44,7 +44,7 @@ class TDblQueue<T> {
    #region Implementation -------------------------------------------
    // Enqueues an element to the specified side of the queue
    void Enqueue (T a, ESide side) {
-      if (mUsed == Capacity) Resize ();
+      Resize ();
       if (side == Tail) {
          mData[mTail] = a;
          mTail = (mTail + 1) % Capacity;
@@ -74,6 +74,7 @@ class TDblQueue<T> {
 
    // Grows the internal buffer and copies all elements in order, starting at index 0
    void Resize () {
+      if (mUsed == Capacity) return;
       T[] temp = new T[Capacity * RESIZEFACTOR];
       for (int i = 0; i < mUsed; i++) temp[i] = mData[(mHead + i) % Capacity];
       mData = temp;
@@ -81,11 +82,14 @@ class TDblQueue<T> {
    }
    #endregion
 
+   #region Constants ------------------------------------------------
+   const int INITCAPACITY = 4;            // Initial size of the buffer
+   const int RESIZEFACTOR = 2;            // Factor by which the buffer grows when full
+   #endregion
+
    #region Private data ---------------------------------------------
    T[] mData = new T[INITCAPACITY];       // Circular buffer holding the elements
    int mHead, mTail, mUsed;               // Index of first element, next free slot, element count
-   const int INITCAPACITY = 4;            // Initial size of the buffer
-   const int RESIZEFACTOR = 2;            // Factor by which the buffer grows when full
    #endregion
 }
 #endregion
