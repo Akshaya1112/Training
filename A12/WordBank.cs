@@ -2,7 +2,7 @@
 // Training ~ A training program for new joinees at Metamation, Batch - July 2026.
 // Copyright (c) TRUMPF Metamation India.
 // ------------------------------------------------------------------------------------------------
-// Word_Bank.cs
+// WordBank.cs
 // Loads the word lists with the possible secret words and all the valid words
 // ------------------------------------------------------------------------------------------------
 using static Wordle;
