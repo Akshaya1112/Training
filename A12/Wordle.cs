@@ -11,20 +11,30 @@ using static System.Console;
 #region Class Wordle ------------------------------------------------------------------------------
 /// <summary>Console implementation of the Wordle word guessing game</summary>
 class Wordle {
+   #region Constructors ---------------------------------------------
+   /// <summary>Initializes the word bank, secret word and display elements</summary>
+   public Wordle () {
+      mWords = new WordBank ();
+      mSecretWord = mWords.PickSecretWord ();
+      mTypedWord = "";
+      mMessage = "";
+      mLine = new (LINECHAR, BOARDWIDTH);
+      mWindowWidth = WindowWidth;
+   }
+   #endregion
+
    #region Properties -----------------------------------------------
    /// <summary>True once the word is guessed or all the guesses are used up</summary>
    public bool GameOver => mWon || mGuesses.Count == MAXGUESSES;
 
    // Column where the board starts so that it is centered in the console
-   static int Left => Math.Max (0, (WindowWidth - BOARDWIDTH) / 2);
+   static int Width => Math.Max (0, (WindowWidth - BOARDWIDTH) / 2);
    #endregion
 
    #region Methods --------------------------------------------------
    /// <summary>Public interface routine to run the game</summary>
    public void Run () {
       ClearScreen ();
-      mWords = new WordBank ();
-      mSecretWord = mWords.PickSecretWord ();
       DisplayBoard ();
       while (!GameOver) {
          ConsoleKeyInfo key = ReadKey (true);
@@ -33,9 +43,6 @@ class Wordle {
       }
       WaitForKey ();
    }
-
-   // Runs the game
-   static void Main () => new Wordle ().Run ();
    #endregion
 
    #region Implementation -------------------------------------------
@@ -81,10 +88,12 @@ class Wordle {
    ELetterState[] GetLetterStates (string guess) {
       var states = new ELetterState[WORDLENGTH];
       var unmatched = new int[ALPHABETLENGTH];               // Secret letters that are not green
+      //  Marks letters in the correct position and counts unmatched secret letters
       for (int i = 0; i < WORDLENGTH; i++) {
          if (guess[i] == mSecretWord[i]) states[i] = ELetterState.Correct;
          else unmatched[mSecretWord[i] - 'A']++;
       }
+      // Marks unmatched guessed letters as Present or Absent
       for (int i = 0; i < WORDLENGTH; i++) {
          if (states[i] == ELetterState.Correct) continue;
          int j = guess[i] - 'A';
@@ -96,8 +105,12 @@ class Wordle {
       return states;
    }
 
-   // Redraws the whole board by overprinting so nothing scrolls
+   // Redraws the board and clears the console when its width changes
    void DisplayBoard () {
+      if (WindowWidth != mWindowWidth) {
+         Clear ();
+         mWindowWidth = WindowWidth;
+      }
       DrawGrid ();
       DrawLine (KEYBOARDTOP - 1);
       DrawKeyboard ();
@@ -118,7 +131,7 @@ class Wordle {
                letter = col < mTypedWord.Length ? mTypedWord[col] : NEXTCELL;
                color = ConsoleColor.White;
             }
-            WriteAt (Left + GRIDLEFT + col * SPACING, 1 + row * SPACING, letter, color);
+            WriteAt (Width + GRIDLEFT + col * SPACING, 1 + row * SPACING, letter, color);
          }
       }
    }
@@ -132,7 +145,7 @@ class Wordle {
             if (states[i] > bestStates[guess[i] - 'A']) bestStates[guess[i] - 'A'] = states[i];
       }
       for (int i = 0; i < ALPHABETLENGTH; i++) {
-         int col = Left + 1 + i % KEYSPERROW * KEYSPACING;
+         int col = Width + 1 + i % KEYSPERROW * KEYSPACING;
          WriteAt (col, KEYBOARDTOP + i / KEYSPERROW, (char)('A' + i), GetColor (bestStates[i]));
       }
    }
@@ -172,19 +185,19 @@ class Wordle {
    };
 
    // Draws a horizontal separator line across the board at the specified row
-   static void DrawLine (int row)
-       => WriteAt (Left, row, new string (LINECHAR, BOARDWIDTH), ConsoleColor.DarkGray);
+   void DrawLine (int row)
+       => WriteAt (Width, row, mLine, ConsoleColor.DarkGray);
 
-   // Writes text at the given column and row
-   static void WriteAt (int col, int row, object text, ConsoleColor color = ConsoleColor.White) {
+   // Writes character or string at the given column and row
+   void WriteAt (int col, int row, object text, ConsoleColor color = ConsoleColor.White) {
       SetCursorPosition (col, row);
       ForegroundColor = color;
       Write (text);
    }
 
    // Writes text centered in the console
-   static void WriteCentered (int row, string text, ConsoleColor color = ConsoleColor.White)
-       => WriteAt (Math.Max (0, (WindowWidth - text.Length) / 2), row, text, color);
+   void WriteCentered (int row, string text, ConsoleColor color = ConsoleColor.White)
+      => WriteAt (Math.Max (0, (WindowWidth - text.Length) / 2), row, text, color);
    #endregion
 
    #region Constants ------------------------------------------------
@@ -205,12 +218,14 @@ class Wordle {
    #endregion
 
    #region Private data ---------------------------------------------
-   WordBank mWords = null!;                      // Puzzle words and dictionary
+   WordBank mWords;                              // Puzzle words and dictionary
    readonly List<string> mGuesses = [];          // Words submitted so far
-   string mSecretWord = "";                      // The word to guess
-   string mTypedWord = "";                       // Word being typed
-   string mMessage = "";                         // Message such as not a word
+   string mSecretWord;                           // The word to guess
+   string mTypedWord;                            // Word being typed
+   string mMessage;                              // Message such as not a word
+   string mLine;                                 // Separator line used to divide the board
    bool mWon;                                    // True if the secret word was guessed
+   int mWindowWidth;                             // Previous console width
    #endregion
 }
 #endregion

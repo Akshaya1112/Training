@@ -10,22 +10,24 @@ using System.Reflection;
 #region Class WordBank ----------------------------------------------------------------------------
 /// <summary>Loads the word lists with the possible secret words and all the valid words</summary>
 class WordBank {
-   #region Methods --------------------------------------------------
-   /// <summary>Loads the puzzle list and the dictionary</summary>
+   #region Constructors ---------------------------------------------
+   /// <summary>Loads the possible secret words and all valid words</summary>
    public WordBank () {
       mGuessWords = ReadWords (GUESSFILE);
       mValidWords = [.. ReadWords (VALIDFILE).Concat (mGuessWords)];
    }
+   #endregion
 
-   /// <summary>Returns a random word from the puzzle list</summary>
-   public string PickSecretWord () => mGuessWords[mRandom.Next (mGuessWords.Length)];
-
-   /// <summary>True if the upper case word is a valid guess</summary>
+   #region Methods --------------------------------------------------
+   /// <summary>True if the word is a valid guess</summary>
    public bool IsValid (string word) => mValidWords.Contains (word);
+
+   /// <summary>Returns a random word from the guess list</summary>
+   public string PickSecretWord () => mGuessWords[mRandom.Next (mGuessWords.Length)];
    #endregion
 
    #region Implementation -------------------------------------------
-   // Reads the five letter words in upper case from a file
+   // Reads words from an embedded resource file
    static string[] ReadWords (string file) {
       string resource = Assembly.GetExecutingAssembly ()
                                 .GetManifestResourceNames ()
@@ -42,7 +44,7 @@ class WordBank {
    #endregion
 
    #region Private data ---------------------------------------------
-   readonly string[] mGuessWords;                    // Possible secret words with random access
+   readonly string[] mGuessWords;                    // Possible secret words
    readonly HashSet<string> mValidWords;             // All valid words with fast lookup
    readonly Random mRandom = new ();
    #endregion
