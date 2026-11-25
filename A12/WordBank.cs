@@ -5,7 +5,6 @@
 // WordBank.cs
 // Loads the word lists with the possible secret words and all the valid words
 // ------------------------------------------------------------------------------------------------
-using static Wordle;
 using System.Reflection;
 
 #region Class WordBank ----------------------------------------------------------------------------
